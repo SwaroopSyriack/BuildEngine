@@ -1,0 +1,15 @@
+{
+  "name": "orchestrator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "test": "node main.js"
+  },
+  "dependencies": {
+    "@buildengine/shared": "*",
+    "crypto": "^1.0.1",
+    "express": "^5.2.1"
+  }
+}

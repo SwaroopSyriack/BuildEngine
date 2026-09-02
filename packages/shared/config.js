@@ -1,0 +1,26 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.resolve(__dirname, '..', '..')
+
+function envInt(name, fallback) {
+    const v = process.env[name];
+    return v ? parseInt(v, 10) : fallback;
+}
+
+export default {
+    ROOT,
+    TMP_DIR: path.join(ROOT, 'tmp'),
+    DATA_DIR: path.join(ROOT, 'data'),
+    CLONE_TIME_OUT: envInt('CLONE_TIMEOUT_MS', 120_000),
+    DEFAULT_IMAGE_NAME: 'node:20-bullseye',
+    DEFAULT_BUILD_CMD: 'npm install && npm run build',
+    RUN_TIME_OUT: envInt('BUILD_TIMEOUT_MS', 5 * 60_000),
+    CONTAINER_MEMORY_BYTES: envInt('CONTAINER_MEMORY_BYTES', 1024 * 1024 * 1024),
+    OUT_DIR_CANDIDATES: ['dist', 'build', 'out'],
+    AWS_REGION: 'ap-southeast-2',
+
+}

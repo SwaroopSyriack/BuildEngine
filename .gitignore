@@ -1,0 +1,66 @@
+    ```gitignore
+# =========================
+# Node.js
+# =========================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# =========================
+# SQLite
+# =========================
+
+# SQLite database files
+*.db
+*.sqlite
+*.sqlite3
+
+# SQLite temporary/journal files
+*.db-journal
+*.db-wal
+*.db-shm
+
+# =========================
+# Build / Generated files
+# =========================
+
+dist/
+build/
+coverage/
+
+# Temporary files
+tmp/
+temp/
+
+# =========================
+# Logs
+# =========================
+
+logs/
+*.log
+
+# =========================
+# OS / Editor
+# =========================
+
+.DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+
+# =========================
+# Misc
+# =========================
+
+*.swp
+*.swo
+```
