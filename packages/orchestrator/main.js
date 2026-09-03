@@ -1,11 +1,15 @@
 import express from "express";
+import path from 'path'
+import { fileURLToPath } from "url";
+import config from "@buildengine/shared/config.js";
+import deprouter from "./routes/deployment.js";
+import projrouter from "./routes/project.js"
+import userrouter from "./routes/user.js";
+import { deployInsert } from "@buildengine/shared/models/deployment.js";
 
-import deprouter from "./routes/deployment";
-import projrouter from "./routes/project";
-import userrouter from "./routes/user";
-import { deploy } from "@buildengine/shared/models/deployment";
-import { deploySummary } from "./serialize";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express()
 app.use(express.json());
@@ -28,14 +32,14 @@ app.post('/deploy', (req, res) => {
         const resolvedBuildCommand = buildCommand || config.DEFAULT_BUILD_COMMAND;
         const resolvedBuildImage = buildImage || config.DEFAULT_BUILD_IMAGE;
 
-        const result = deploy(repo_url, resolvedBuildCommand, resolvedBuildImage)
+        const result = deployInsert(repo_url, resolvedBuildCommand, resolvedBuildImage)
 
         if (result) {
 
             res.status(201).json({
-                deploymentId: deployment.id,
-                deploymentName: deployment.name,
-                status: deployment.status,
+                deploymentId: result.id,
+                deploymentName: result.name,
+                status: result.status,
             })
         }
     }
@@ -45,9 +49,14 @@ app.post('/deploy', (req, res) => {
 })
 
 
-app.use('/projects', projectsRouter);
-app.use('/deployments', deploymentsRouter);
+app.use('/projects', projrouter);
+app.use('/deployments', deprouter);
+app.use('/users', userrouter);
 
 app.use((req, res) => {
     res.status(404).json({ error: 'not found' });
+});
+
+app.listen(config.ORCHESTRATOR_PORT, () => {
+    console.log(`[orchestrator] listening on http://localhost:${config.ORCHESTRATOR_PORT}`);
 });

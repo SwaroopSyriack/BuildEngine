@@ -1,14 +1,11 @@
 import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
 import fs from 'node:fs'
-import config from "./config";
+import config from "./config.js";
 import { fileURLToPath } from 'url';
 
-function getDirname(importMetaUrl) {
-    const filename = fileURLToPath(importMetaUrl);
-    return dirname(filename);
-}
-const __dirname = getDirname(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 fs.mkdirSync(path.dirname(config.DATA_DIR), { recursive: true })

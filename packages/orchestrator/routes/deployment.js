@@ -1,5 +1,5 @@
 import express from 'express';
-import { getByID } from '@buildengine/shared/models/deployment';
+import { getByID } from '@buildengine/shared/models/deployment.js';
 
 
 const router = express.Router();

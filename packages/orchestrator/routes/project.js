@@ -1,7 +1,7 @@
 import express from 'express';
 import { isValidName } from '@buildengine/shared/utils/util.js';
 import { getByName, create_project, listAll, getByID } from '@buildengine/shared/models/project.js';
-import { projSumamry } from '../serialize';
+import { projSumamry } from '../serialize.js';
 
 
 const router = express.Router();

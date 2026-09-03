@@ -1,6 +1,7 @@
 {
   "name": "orchestrator",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "main.js",
   "private": true,
@@ -9,6 +10,7 @@
   },
   "dependencies": {
     "@buildengine/shared": "*",
+    "bcrypt": "^6.0.0",
     "crypto": "^1.0.1",
     "express": "^5.2.1"
   }

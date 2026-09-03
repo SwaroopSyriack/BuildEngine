@@ -1,7 +1,7 @@
 import express from 'express';
 import db from '@buildengine/shared/db.js'
 import { getByEmail, create_user, getAllUsers, getByID } from '@buildengine/shared/models/user.js';
-import bcrypt from 'bycrypt'
+import bcrypt from 'bcrypt'
 
 
 const router = express.Router();

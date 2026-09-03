@@ -1,8 +1,8 @@
-import db from "../db";
+import db from "../db.js";
 import crypto from 'node:crypto'
 
 function newID() {
-    return `dep-crypto.randomUUID(6).toString('hex')`
+    return `dep-${crypto.randomUUID(6).toString('hex')}`
 }
 
 const deployStmt = db.prepare('INSERT INTO deployments (repo_url,build_command,build_image)');
@@ -10,7 +10,7 @@ const deployStmt = db.prepare('INSERT INTO deployments (repo_url,build_command,b
 const getByIDstmt = db.prepare('SELECT * FROM deployments WHERE id = ?')
 
 
-function deploy({ repo_url, build_command, build_image, }) {
+function deployInsert({ repo_url, build_command, build_image, }) {
     const id = newID()
     deployStmt.run(repo_url, build_command, build_image)
     return getByID(id)
@@ -22,4 +22,4 @@ function getByID(id) {
 }
 
 
-export { deploy, getByID }
+export { deployInsert, getByID }

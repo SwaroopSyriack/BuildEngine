@@ -1,4 +1,4 @@
-import db from "../db"
+import db from "../db.js"
 
 const user_create = db.prepare('INSERT INTO users (name, email, password) VALUES(?, ?, ?, ?)`4');
 
