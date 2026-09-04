@@ -14,7 +14,7 @@ function envInt(name, fallback) {
 export default {
     ROOT,
     TMP_DIR: path.join(ROOT, 'tmp'),
-    DATA_DIR: path.join(ROOT, 'data'),
+    DATA_DIR: path.join(ROOT, 'data', 'buildengine.db'),
     CLONE_TIME_OUT: envInt('CLONE_TIMEOUT_MS', 120_000),
     DEFAULT_IMAGE_NAME: 'node:20-bullseye',
     DEFAULT_BUILD_CMD: 'npm install && npm run build',

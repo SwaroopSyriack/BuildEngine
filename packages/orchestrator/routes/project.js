@@ -8,17 +8,11 @@ const router = express.Router();
 
 
 router.get('/', (req, res) => {
-    try {
-        const result = listAll()
-        if (result) {
-            res.status(201).json({ message: 'Fetched all items ', result: result.map(projSumamry) })
-        }
-    }
 
-    catch (err) {
-
-        console.error('Error Ocuured', err.message)
-    }
+    return res.status(200).json({
+        message: 'Fetched all items',
+        result: result.map(projSumamry)
+    });
 
 })
 
@@ -27,22 +21,24 @@ router.get('/:name', (req, res) => {
 
     try {
 
-        const proj_id = req.params.id;
+        const proj_name = req.params.name;
 
-        const exist_proj = getByName(proj_id)
+        const exist_proj = getByName(proj_name)
 
         if (!exist_proj) {
-            res.status(404).json({
+            return res.status(404).json({
                 message: 'Project not Found'
             })
         }
 
-        res.status(201).json({ message: 'Project Found ', result: projSumamry(exist_proj) })
+        res.status(200).json({ message: 'Project Found ', result: projSumamry(exist_proj) })
 
 
     }
     catch (err) {
-
+        return res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 })
 
@@ -54,17 +50,17 @@ router.post('/', (req, res) => {
         const { name, repo_url, build_command, build_image, output_dir, spa_fallback } = req.body || {}
 
         if ((!name) || (!isValidName(name))) {
-            res.status(400).json({ message: ' name is required and must be a valid subdomain label (lowercase letters, digits, hyphens)' })
+            return res.status(400).json({ message: ' name is required and must be a valid subdomain label (lowercase letters, digits, hyphens)' })
         }
 
-        if ((!repo_url) || typeof repoUrl !== 'string') {
+        if ((!repo_url) || typeof repo_url !== 'string') {
 
-            res.status(400).json({ message: 'repoUrl is required' })
+            return res.status(400).json({ message: 'repoUrl is required' })
 
         }
 
         if (getByName(name)) {
-            res.status(400).json({ message: ` project '${name}' already exists' ` });
+            return res.status(400).json({ message: ` project '${name}' already exists' ` });
         }
 
 
@@ -74,7 +70,7 @@ router.post('/', (req, res) => {
             build_command: build_command || null,
             build_image: build_image || null,
             output_dir: output_dir || null,
-            spa_fallback: spaFallback === undefined ? true : !!spaFallback,
+            spa_fallback: spa_fallback === undefined ? true : !!spa_fallback
 
         })
 
@@ -84,6 +80,9 @@ router.post('/', (req, res) => {
     }
     catch (err) {
         console.error(err.message)
+        return res.status(500).json({
+            message: 'Internal server error'
+        });
     }
 });
 

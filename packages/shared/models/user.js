@@ -1,6 +1,6 @@
 import db from "../db.js"
 
-const user_create = db.prepare('INSERT INTO users (name, email, password) VALUES(?, ?, ?, ?)`4');
+const user_create = db.prepare('INSERT INTO users (name, email, password) VALUES(?, ?, ?)');
 
 const getIDStmt = db.prepare('SELECT * FROM users WHERE id = ?');
 
