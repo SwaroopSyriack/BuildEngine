@@ -10,9 +10,6 @@ function projSumamry(project) {
         outputDir: project.output_dir,
         spaFallback: !!project.spa_fallback,
         createdAt: project.created_at,
-        liveDeployment: live
-            ? { id: live.id, status: live.status, commitSha: live.commit_sha, finishedAt: live.finished_at }
-            : null,
     };
 }
 

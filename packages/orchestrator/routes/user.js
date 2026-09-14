@@ -1,5 +1,6 @@
 import express from 'express';
-import { getByEmail, create_user, getAllUsers, getByID, del_user } from '@buildengine/shared/models/user.js';
+import { getByEmail, create_user, getAllUsers, del_user, getUserProj } from '@buildengine/shared/models/user.js';
+import { getUserByID } from '@buildengine/shared/models/user.js';
 import bcrypt from 'bcrypt'
 
 
@@ -60,7 +61,7 @@ router.delete('/:id', (req, res) => {
     try {
 
         const userId = req.params.id;
-        const existingUser = getByID(userId)
+        const existingUser = getUserByID(userId)
         if (!existingUser) {
             return res.status(400).json({ message: `User ${userId} not Found` })
         }
@@ -85,6 +86,15 @@ router.delete('/:id', (req, res) => {
             message: 'Internal server error'
         });
     }
+})
+
+
+router.get('/:id/projects', (req, res) => {
+    const user_id = req.params.id;
+    const existingUser = getUserByID(user_id)
+    if (!existingUser) return res.status(400).json({ message: 'User not Found' })
+    const projects = getUserProj(user_id)
+    return res.status(200).json({ message: 'Projects Fecthed Successfully', result: projects })
 })
 
 

@@ -103,14 +103,14 @@ function findOutDir(repoPath, candidates) {
 
 async function runBuild(job) {
 
-    const tmpDir = path.join(config.TMP_DIR, job.deploymentid)
+    const tmpDir = path.join(config.TMP_DIR, job.id)
     const repoDir = path.join(tmpDir, 'repo')
 
     try {
         fs.mkdirSync(tmpDir, { recursive: true })
         console.log('The TMP folder has been created successfully');
 
-        await runShellCommand('git', ['clone', '--depth', '1', job.githubUrl, repoDir], { cwd: tmpDir, timeout: config.CLONE_TIME_OUT, maxBuffer: 10 * 1024 * 1024 })
+        await runShellCommand('git', ['clone', '--depth', '1', job.repo_url, repoDir], { cwd: tmpDir, timeout: config.CLONE_TIME_OUT, maxBuffer: 10 * 1024 * 1024 })
 
         let repoFolderPath;
 
@@ -151,8 +151,8 @@ async function runBuild(job) {
         }
         console.log('system', `Using output directory: ${out}`);
 
-        await upload_aws(path.join(repoFolderPath, out), job.deploymentid)
-        console.log(`The Deployment Url is : http://${job.deploymentid}.s3-website.${config.AWS_REGION}.amazonaws.com`)
+        await upload_aws(path.join(repoFolderPath, out), job.id)
+        console.log(`The Deployment Url is : http://${job.id}.s3-website.${config.AWS_REGION}.amazonaws.com`)
 
 
     }

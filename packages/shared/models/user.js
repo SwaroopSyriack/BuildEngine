@@ -10,6 +10,8 @@ const getEmailStmt = db.prepare('SELECT * FROM users WHERE email = ?');
 
 const user_del = db.prepare('DELETE FROM users WHERE id = ? ');
 
+const userProjStmt = db.prepare('SELECT * FROM projects WHERE user_id = ?')
+
 const user_update = db.prepare(`
     UPDATE users
     SET
@@ -24,7 +26,7 @@ function create_user({ name, email, password }) {
     return getByID(result.lastInsertRowid);
 }
 
-function getByID(id) {
+function getUserByID(id) {
     return getIDStmt.get(id);
 }
 
@@ -46,5 +48,9 @@ function update_user({ id, name, email, password }) {
     return result.changes;
 }
 
+function getUserProj(userid) {
+    return getUserProj(userid)
+}
 
-export { getByEmail, create_user, getAllUsers, getByID, del_user };
+
+export { getByEmail, create_user, getAllUsers, getUserByID, del_user, getUserProj };

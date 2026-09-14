@@ -1,6 +1,6 @@
 import express from 'express';
 import { isValidName } from '@buildengine/shared/utils/util.js';
-import { getByName, create_project, listAll, getByID } from '@buildengine/shared/models/project.js';
+import { getByName, create_project, listAll, getByID, delProj, getDeploymensts } from '@buildengine/shared/models/project.js';
 import { projSumamry } from '../serialize.js';
 
 
@@ -8,6 +8,8 @@ const router = express.Router();
 
 
 router.get('/', (req, res) => {
+
+    const result = listAll()
 
     return res.status(200).json({
         message: 'Fetched all items',
@@ -17,20 +19,19 @@ router.get('/', (req, res) => {
 })
 
 
-router.get('/:name', (req, res) => {
+router.get('/:id', (req, res) => {
 
     try {
 
-        const proj_name = req.params.name;
+        const projID = req.params.id;
 
-        const exist_proj = getByName(proj_name)
+        const exist_proj = getByID(projID)
 
         if (!exist_proj) {
             return res.status(404).json({
                 message: 'Project not Found'
             })
         }
-
         res.status(200).json({ message: 'Project Found ', result: projSumamry(exist_proj) })
 
 
@@ -47,7 +48,7 @@ router.post('/', (req, res) => {
 
     try {
 
-        const { name, repo_url, build_command, build_image, output_dir, spa_fallback } = req.body || {}
+        const { user_id, name, repo_url, build_command, build_image, output_dir, spa_fallback } = req.body || {}
 
         if ((!name) || (!isValidName(name))) {
             return res.status(400).json({ message: ' name is required and must be a valid subdomain label (lowercase letters, digits, hyphens)' })
@@ -65,6 +66,7 @@ router.post('/', (req, res) => {
 
 
         const result = create_project({
+            user_id,
             name,
             repo_url,
             build_command: build_command || null,
@@ -85,6 +87,43 @@ router.post('/', (req, res) => {
         });
     }
 });
+
+
+router.delete('/:id', (req, res) => {
+    try {
+
+        const proj_id = req.params.id;
+
+        const existingProj = getByID(proj_id)
+        if (!existingProj) {
+            return res.status(400).json({ message: `Project ${proj_id} Not Found` })
+        }
+        delProj(proj_id)
+        return res.status(200).json({ message: `Project ${existingProj.name} deleted Successfully` })
+
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            message: 'Internal server error'
+        });
+
+    }
+
+})
+
+
+// Need to Add the Serilizers not Added
+router.get('/:id/deployments', (req, res) => {
+    const projID = req.params.id;
+    const existingProj = getByID(projID);
+    if (!existingProj) {
+        return res.status(404).json({ message: 'Project not Found' })
+    }
+    const result = getDeploymensts(projID)
+    return res.status(200).json({ message: 'Found Deployments for Project', result: result })
+
+})
 
 export default router;
 

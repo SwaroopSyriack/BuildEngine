@@ -25,5 +25,6 @@ export default {
     ORCHESTRATOR_PORT: 3000,
     DEFAULT_BUILD_IMAGE: process.env.DEFAULT_BUILD_IMAGE || 'node:20-bullseye',
     DEFAULT_BUILD_COMMAND: process.env.DEFAULT_BUILD_COMMAND || 'npm install && npm run build',
+    DOCKER_RETRY_INTERVAL_MS: envInt('DOCKER_RETRY_INTERVAL_MS', 5000),
 
 }

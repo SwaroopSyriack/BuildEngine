@@ -6,6 +6,7 @@ import deprouter from "./routes/deployment.js";
 import projrouter from "./routes/project.js"
 import userrouter from "./routes/user.js";
 import { deployInsert } from "@buildengine/shared/models/deployment.js";
+import { getByID, updateRepo } from "@buildengine/shared/models/project.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,30 +22,41 @@ app.get('/health', (req, res) => {
 })
 
 
-app.post('/deploy', (req, res) => {
+app.post('/deploy/:projID', (req, res) => {
     try {
-        const { repo_url, build_command, build_image, output_dir } = req.body;
 
-        if ((!repo_url) || repo_url !== typeof 'string') {
-            res.status(400).json({ message: 'Inavlid Url' })
+        const projectID = req.params.projID;
+        // const { repo_url, build_command, build_image, output_dir } = req.body;
+
+        // if ((!repo_url) || repo_url !== typeof 'string') {
+        //     return res.status(400).json({ message: 'Inavlid Url' })
+        // }
+
+        const existingProj = getByID(projectID)
+
+        if (!existingProj) {
+
+            return res.status(404).json({ message: 'Project not Found' })
+
         }
 
-        const resolvedBuildCommand = buildCommand || config.DEFAULT_BUILD_COMMAND;
-        const resolvedBuildImage = buildImage || config.DEFAULT_BUILD_IMAGE;
+        const resolvedBuildCommand = existingProj.build_command || config.DEFAULT_BUILD_COMMAND;
+        const resolvedBuildImage = existingProj.build_image || config.DEFAULT_BUILD_IMAGE;
 
-        const result = deployInsert(repo_url, resolvedBuildCommand, resolvedBuildImage)
+        const result = deployInsert({ project_id: projectID, repo_url: existingProj.repo_url, build_command: resolvedBuildCommand, build_image: resolvedBuildImage })
+
 
         if (result) {
 
             res.status(201).json({
                 deploymentId: result.id,
-                deploymentName: result.name,
                 status: result.status,
             })
         }
     }
     catch (err) {
-        console.error(err)
+        console.error('[deploy] failed:', err);
+        res.status(500).json({ message: 'internal error' });
     }
 })
 
