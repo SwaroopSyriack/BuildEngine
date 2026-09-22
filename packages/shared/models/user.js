@@ -23,7 +23,7 @@ const user_update = db.prepare(`
 
 function create_user({ name, email, password }) {
     const result = user_create.run(name, email, password)
-    return getByID(result.lastInsertRowid);
+    return getUserByID(result.lastInsertRowid);
 }
 
 function getUserByID(id) {

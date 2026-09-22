@@ -1,8 +1,11 @@
 import express from 'express';
 import { getByID } from '@buildengine/shared/models/deployment.js';
+import { requireAuth } from '../middleware/auth.js';
+
 
 
 const router = express.Router();
+router.use(requireAuth)
 
 
 router.get('/:id', (req, res) => {

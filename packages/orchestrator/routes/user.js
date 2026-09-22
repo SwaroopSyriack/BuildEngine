@@ -2,6 +2,7 @@ import express from 'express';
 import { getByEmail, create_user, getAllUsers, del_user, getUserProj } from '@buildengine/shared/models/user.js';
 import { getUserByID } from '@buildengine/shared/models/user.js';
 import bcrypt from 'bcrypt'
+import { userSummary } from '../serialize.js';
 
 
 const router = express.Router();
@@ -45,7 +46,7 @@ router.post('/', async (req, res) => {
 
         return res.status(201).json({
             message: 'User created successfully',
-            result: result
+            result: result.map(userSummary)
         });
     }
     catch (err) {

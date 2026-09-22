@@ -5,6 +5,7 @@ import config from "@buildengine/shared/config.js";
 import deprouter from "./routes/deployment.js";
 import projrouter from "./routes/project.js"
 import userrouter from "./routes/user.js";
+import authrouter from './routes/auth.js'
 import { deployInsert } from "@buildengine/shared/models/deployment.js";
 import { getByID, updateRepo } from "@buildengine/shared/models/project.js";
 
@@ -64,6 +65,7 @@ app.post('/deploy/:projID', (req, res) => {
 app.use('/projects', projrouter);
 app.use('/deployments', deprouter);
 app.use('/users', userrouter);
+app.use('/auth', authrouter)
 
 app.use((req, res) => {
     res.status(404).json({ error: 'not found' });
