@@ -37,4 +37,16 @@ function deploySummary(d) {
 }
 
 
-export { projSumamry, deploySummary };
+function userSummary(u) {
+
+    return {
+        user_id: u.id,
+        name: u.name,
+        email: u.email,
+        createdAt: u.created_at
+    }
+
+
+}
+
+export { projSumamry, deploySummary, userSummary };
