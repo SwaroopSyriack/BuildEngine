@@ -3,6 +3,7 @@ import { S3Client, PutObjectCommand, CreateBucketCommand, PutPublicAccessBlockCo
 import fs from "fs";
 import path from "path";
 import mime from "mime-types"
+import 'dotenv/config';
 
 
 function getFilesRecursively(dir) {
@@ -124,17 +125,17 @@ async function deploy(outdir, S3Client, BUCKET_NAME) {
 export default async function upload_aws(outputdir, deployment_id) {
 
     const s3Client = new S3Client({
-        region: "ap-southeast-2", // Replace with your bucket's region
+        region: process.env.AWS_REGION, // Replace with your bucket's region
         credentials: {
-            accessKeyId: "AKIATAWB73HILFO5QQZM",
-            secretAccessKey: "0xh22cKAxaj2Gn4TvZXUx/Nm4eF0Jg0dxLMFw61I",
+            accessKeyId: process.env.AWS_ACCESSKEYID,
+            secretAccessKey: process.env.AWS_SECRETACCESSKEY,
         },
     });
 
     const Bucket_name = `${deployment_id}`;
 
     console.log("Creating the Bucket.....");
-    const bucketName = await createBucket(s3Client, Bucket_name, "ap-southeast-2")
+    const bucketName = await createBucket(s3Client, Bucket_name, process.env.AWS_REGION)
     console.log("Creating the bucket completed ")
 
 

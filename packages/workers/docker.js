@@ -39,7 +39,7 @@ async function runContainer({ image, buildCmd, RepoDir, timeOut }) {
             Binds: [`${RepoDir}:/workspace`],
             Memory: config.CONTAINER_MEMORY_BYTES,
             NetworkMode: 'bridge',
-            AutoRemove: false
+            AutoRemove: true
         },
 
     })

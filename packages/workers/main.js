@@ -7,14 +7,6 @@ import os from 'node:os'
 
 const WORKER_ID = `${os.hostname()}-${process.pid}`;
 
-// const job = {
-//     Image: '',
-//     buildCmd: '',
-//     deploymentid: `dep${randomUUID()}`,
-//     projectid: '',
-//     githubUrl: 'https://github.com/SwaroopSyriack/Simple_Snake_Game.git'
-// }
-
 async function start() {
     let didWork = false;
     try {
@@ -37,7 +29,3 @@ async function start() {
 console.log(`[worker] starting (${WORKER_ID}), polling for pending deployments...`);
 start();
 
-// if (job) {
-//     console.log('The Cloning have started');
-
-// }

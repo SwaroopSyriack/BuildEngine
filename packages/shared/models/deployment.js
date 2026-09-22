@@ -2,7 +2,7 @@ import db from "../db.js";
 import crypto from 'node:crypto'
 
 function newID() {
-    return `dep_${crypto.randomBytes(6).toString('hex')}`
+    return `dep-${crypto.randomBytes(6).toString('hex')}`
 }
 
 const deployStmt = db.prepare(`INSERT INTO deployments (id , project_id ,repo_url,build_command,build_image , status ) VALUES (? , ? , ? , ? , ? ,'pending')`);
