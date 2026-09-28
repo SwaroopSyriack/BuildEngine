@@ -7,7 +7,7 @@ import projrouter from "./routes/project.js"
 import userrouter from "./routes/user.js";
 import authrouter from './routes/auth.js'
 import { deployInsert } from "@buildengine/shared/models/deployment.js";
-import { getByID, updateRepo } from "@buildengine/shared/models/project.js";
+import { getByID } from "@buildengine/shared/models/project.js";
 
 
 const __filename = fileURLToPath(import.meta.url);

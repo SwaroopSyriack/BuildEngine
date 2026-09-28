@@ -2,7 +2,7 @@ import express from 'express';
 import { getByEmail, create_user, getAllUsers, del_user, getUserProj } from '@buildengine/shared/models/user.js';
 import { getUserByID } from '@buildengine/shared/models/user.js';
 import bcrypt from 'bcrypt'
-import { userSummary } from '../serialize.js';
+import { projSumamry, userSummary } from '../serialize.js';
 
 
 const router = express.Router();
@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
 
     return res.status(200).json({
         message: 'Users Fecthed successfully',
-        result: result
+        result: result.map(userSummary)
     });
 
 })
@@ -95,7 +95,7 @@ router.get('/:id/projects', (req, res) => {
     const existingUser = getUserByID(user_id)
     if (!existingUser) return res.status(400).json({ message: 'User not Found' })
     const projects = getUserProj(user_id)
-    return res.status(200).json({ message: 'Projects Fecthed Successfully', result: projects })
+    return res.status(200).json({ message: 'Projects Fecthed Successfully', result: projects.map(projSumamry) })
 })
 
 

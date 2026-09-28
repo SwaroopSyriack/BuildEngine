@@ -1,7 +1,7 @@
 import express from 'express';
 import { isValidName } from '@buildengine/shared/utils/util.js';
 import { getByName, create_project, listAll, getByID, delProj, getDeploymensts } from '@buildengine/shared/models/project.js';
-import { projSumamry } from '../serialize.js';
+import { deploySummary, projSumamry } from '../serialize.js';
 
 
 const router = express.Router();
@@ -121,7 +121,7 @@ router.get('/:id/deployments', (req, res) => {
         return res.status(404).json({ message: 'Project not Found' })
     }
     const result = getDeploymensts(projID)
-    return res.status(200).json({ message: 'Found Deployments for Project', result: result })
+    return res.status(200).json({ message: 'Found Deployments for Project', result: result.map(deploySummary) })
 
 })
 

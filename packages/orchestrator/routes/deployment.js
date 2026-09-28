@@ -1,6 +1,7 @@
 import express from 'express';
 import { getByID } from '@buildengine/shared/models/deployment.js';
 import { requireAuth } from '../middleware/auth.js';
+import { deploySummary } from '../serialize.js';
 
 
 
@@ -24,7 +25,7 @@ router.get('/:id', (req, res) => {
 
         }
 
-        return res.status(200).json({ message: 'Successfull', result: result })
+        return res.status(200).json({ message: 'Successfull', result: deploySummary(result) })
     }
     catch (err) {
         console.error(err)
