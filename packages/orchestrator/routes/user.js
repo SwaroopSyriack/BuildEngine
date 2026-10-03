@@ -94,8 +94,8 @@ router.get('/:id/projects', (req, res) => {
     const user_id = req.params.id;
     const existingUser = getUserByID(user_id)
     if (!existingUser) return res.status(400).json({ message: 'User not Found' })
-    const projects = getUserProj(user_id)
-    return res.status(200).json({ message: 'Projects Fecthed Successfully', result: projects.map(projSumamry) })
+    const result = getUserProj(user_id)
+    return res.status(200).json({ message: 'Projects Fecthed Successfully', result: result.map(projSumamry) })
 })
 
 

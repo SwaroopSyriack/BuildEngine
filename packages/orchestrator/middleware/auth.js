@@ -9,18 +9,21 @@ function extractToken(req) {
     if (req.cookies?.[COOKIE_NAME]) return req.cookies[COOKIE_NAME];
 
     const header = req.headers.authorization || '';
-    const [schema, token] = header.split('')
-    if (schema === 'Bearer' && token) return token
+    const [schema, token] = header.split(' ')
+    if (schema === 'Bearer' && token) {
+        console.log(token)
+        return token
+    }
 
     return null;
 }
 
 
 function requireAuth(req, res, next) {
-
+    const token = extractToken(req);
     try {
-        const token = extractToken(req);
-        if (token) {
+
+        if (!token) {
             return res.status(401).json({ message: 'Not Authenticated' })
         }
 
@@ -29,7 +32,9 @@ function requireAuth(req, res, next) {
         next();
     }
     catch (err) {
+        console.log(err)
         return res.status(401).json({ message: 'Invalid or expired Session' })
+
     }
 
 

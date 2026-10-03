@@ -49,7 +49,7 @@ function update_user({ id, name, email, password }) {
 }
 
 function getUserProj(userid) {
-    return getUserProj(userid)
+    return userProjStmt.all(userid)
 }
 
 

@@ -2,10 +2,11 @@ import express from 'express';
 import { isValidName } from '@buildengine/shared/utils/util.js';
 import { getByName, create_project, listAll, getByID, delProj, getDeploymensts } from '@buildengine/shared/models/project.js';
 import { deploySummary, projSumamry } from '../serialize.js';
+import { requireAuth } from '../middleware/auth.js';
 
 
 const router = express.Router();
-
+router.use(requireAuth)
 
 router.get('/', (req, res) => {
 
