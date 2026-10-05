@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeonDeploy — Docs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="css/app.css" rel="stylesheet"/>
+</head>
+<body class="font-body-md text-body-md">
+
+<div id="app-nav"></div>
+
+<main class="max-w-4xl mx-auto px-gutter py-12 space-y-10">
+  <div>
+    <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-2">How this is wired up</h1>
+    <p class="text-secondary font-code-md text-code-md">Every screen talks to the buildEngine orchestrator that serves this page. There is no demo data.</p>
+  </div>
+
+  <section class="bg-panel rounded-xl neon-border p-6">
+    <h2 class="font-headline-md text-headline-md text-primary mb-4">1 · Same server, same origin</h2>
+    <p class="text-secondary mb-4">The orchestrator (<code class="font-code-md text-on-surface-variant">packages/orchestrator/main.js</code>) serves this frontend <em>and</em> the JSON API from one Express process, so <code class="font-code-md text-on-surface-variant">js/config.js</code>'s <code class="font-code-md text-on-surface-variant">baseUrl</code> defaults to this page's own origin. Point it elsewhere from the <span class="material-symbols-outlined align-middle" style="font-size:16px">settings</span> gear in the nav.</p>
+    <p class="text-secondary">Pages never call <code class="font-code-md text-on-surface-variant">fetch()</code> directly — they use helpers in <code class="font-code-md text-on-surface-variant">js/api.js</code>, which unwrap the backend's <code class="font-code-md text-on-surface-variant">{ message, result }</code> envelope and derive UI fields (a project's status is its latest deployment's status).</p>
+  </section>
+
+  <section class="bg-panel rounded-xl neon-border p-6">
+    <h2 class="font-headline-md text-headline-md text-primary mb-4">2 · Routes in use</h2>
+    <p class="text-secondary mb-4"><strong class="text-primary">Deployments need the worker running.</strong> <code class="font-code-md text-on-surface-variant">POST /deploy/:id</code> only inserts a <code class="font-code-md text-on-surface-variant">pending</code> row — <code class="font-code-md text-on-surface-variant">packages/workers/main.js</code> claims it, builds it in Docker and uploads it to S3.</p>
+    <div class="terminal" id="routes"></div>
+  </section>
+
+  <section class="bg-panel rounded-xl neon-border p-6">
+    <h2 class="font-headline-md text-headline-md text-primary mb-4">3 · Not available yet</h2>
+    <p class="text-secondary mb-4">These screens exist in the UI but the backend has no route for them, so they show a placeholder:</p>
+    <div class="terminal" id="missing"></div>
+  </section>
+
+  <section class="bg-panel rounded-xl neon-border p-6">
+    <h2 class="font-headline-md text-headline-md text-primary mb-4">4 · Auth</h2>
+    <p class="text-secondary"><code class="font-code-md text-on-surface-variant">POST /auth/login</code> and <code class="font-code-md text-on-surface-variant">/auth/signup</code> set an httpOnly <code class="font-code-md text-on-surface-variant">session</code> cookie and return a <code class="font-code-md text-on-surface-variant">token</code>. The frontend keeps that token and sends it as <code class="font-code-md text-on-surface-variant">Authorization: Bearer &lt;token&gt;</code> too, so auth also works when the page is served from a different origin. Any 401 sends you back to the sign-in page.</p>
+  </section>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script>
+UI.mountNav("docs");
+document.getElementById("routes").innerHTML = Object.entries(Config.ENDPOINTS)
+  .map(([k, e]) => `<div><span class="log-ok">${e.method.padEnd(7)}</span><span class="log-info">${UI.escape(e.path)}</span><span class="log-time">   // ${k}</span></div>`)
+  .join("");
+document.getElementById("missing").innerHTML = Object.entries(Config.MISSING_ROUTES)
+  .map(([k, r]) => `<div><span class="log-warn">${UI.escape(r)}</span><span class="log-time">   // ${k}</span></div>`)
+  .join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeonDeploy — Build. Deploy. Go Live.</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="css/app.css" rel="stylesheet"/>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+
+<!-- ================= Nav ================= -->
+<nav class="bg-surface w-full top-0 sticky z-50 border-b border-outline-variant">
+  <div class="flex justify-between items-center h-16 px-gutter max-w-container-max mx-auto">
+    <div class="flex items-center gap-6">
+      <a class="font-headline-md text-headline-md font-bold text-primary tracking-tighter" href="index.html">NeonDeploy</a>
+      <div class="hidden md:flex gap-6 items-center h-full">
+        <a class="text-secondary hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#features">Features</a>
+        <a class="text-secondary hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="docs.html">Docs</a>
+        <a class="text-secondary hover:text-primary transition-colors duration-200 font-body-md text-body-md" href="#pricing">Pricing</a>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <a class="text-secondary hover:text-primary transition-colors duration-200 font-body-md text-body-md hidden md:block" href="login.html">Sign In</a>
+      <a class="bg-primary-container text-[#050505] font-semibold px-4 py-2 rounded font-body-md text-body-md hover:opacity-90 transition-opacity" href="login.html">Start Deploying</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= Hero ================= -->
+<header class="relative pt-32 pb-24 md:pt-48 md:pb-32 px-gutter max-w-container-max mx-auto flex flex-col items-center text-center">
+  <div class="absolute inset-0 grid-bg opacity-20 pointer-events-none"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#050505] pointer-events-none"></div>
+
+  <h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-6 relative z-10 max-w-4xl">
+    Build. Deploy. Go Live.
+  </h1>
+  <p class="font-body-md text-body-md text-secondary max-w-2xl mb-10 relative z-10">
+    The high-performance platform for modern technical teams. Push your code, and let our infrastructure handle the rest with global delivery and instant rollbacks.
+  </p>
+  <div class="flex flex-col sm:flex-row gap-4 relative z-10">
+    <a href="projects.html" class="bg-primary-container text-[#050505] font-semibold px-8 py-3 rounded font-body-md text-body-md hover:opacity-90 transition-opacity">
+      Open the Dashboard
+    </a>
+    <a href="docs.html" class="bg-transparent border border-hairline text-primary px-8 py-3 rounded font-body-md text-body-md hover:border-primary-container hover:text-primary-container transition-colors">
+      Read the Docs
+    </a>
+  </div>
+
+  <!-- Terminal preview -->
+  <div class="mt-20 w-full max-w-5xl bg-panel border border-hairline rounded-xl overflow-hidden neon-glow transition-all duration-300 relative z-10 shadow-2xl">
+    <div class="h-10 bg-surface border-b border-hairline flex items-center px-4 gap-2">
+      <div class="w-3 h-3 rounded-full bg-[#353534]"></div>
+      <div class="w-3 h-3 rounded-full bg-[#353534]"></div>
+      <div class="w-3 h-3 rounded-full bg-[#353534]"></div>
+    </div>
+    <div class="p-6 font-code-md text-code-md flex flex-col gap-2 min-h-[168px]" id="hero-term"></div>
+  </div>
+</header>
+
+<!-- ================= Features ================= -->
+<section id="features" class="py-24 px-gutter max-w-container-max mx-auto border-t border-hairline">
+  <h2 class="font-headline-md text-headline-md text-primary mb-12 text-center">Engineered for Velocity</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-panel border border-hairline rounded-lg p-6 neon-glow transition-all duration-300">
+      <div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center mb-6 border border-hairline">
+        <span class="material-symbols-outlined text-primary-container">integration_instructions</span>
+      </div>
+      <h3 class="font-headline-md text-primary mb-2 text-lg">Git Integration</h3>
+      <p class="font-body-md text-body-md text-secondary">Connect your repository. We automatically detect your framework and configure the build settings.</p>
+    </div>
+    <div class="bg-panel border border-hairline rounded-lg p-6 neon-glow transition-all duration-300">
+      <div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center mb-6 border border-hairline">
+        <span class="material-symbols-outlined text-primary-container">rocket_launch</span>
+      </div>
+      <h3 class="font-headline-md text-primary mb-2 text-lg">Auto-deploy</h3>
+      <p class="font-body-md text-body-md text-secondary">Every push to your main branch triggers an atomic deployment, live in seconds.</p>
+    </div>
+    <div class="bg-panel border border-hairline rounded-lg p-6 neon-glow transition-all duration-300">
+      <div class="w-12 h-12 bg-surface-container rounded-lg flex items-center justify-center mb-6 border border-hairline">
+        <span class="material-symbols-outlined text-primary-container">public</span>
+      </div>
+      <h3 class="font-headline-md text-primary mb-2 text-lg">Global Delivery</h3>
+      <p class="font-body-md text-body-md text-secondary">Your content is distributed across our edge network for sub-50ms latency worldwide.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Pricing ================= -->
+<section id="pricing" class="py-24 px-gutter max-w-container-max mx-auto border-t border-hairline">
+  <div class="text-center mb-16">
+    <h2 class="font-headline-md text-headline-md text-primary mb-4">Transparent Pricing</h2>
+    <p class="font-body-md text-body-md text-secondary max-w-2xl mx-auto">Start for free, scale as you grow. No hidden fees.</p>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-panel border border-hairline rounded-lg p-8 hover:border-outline-variant transition-colors">
+      <h3 class="font-headline-md text-headline-md text-primary mb-2">Hobby</h3>
+      <div class="mb-6"><span class="text-4xl font-bold text-primary">$0</span><span class="text-secondary">/mo</span></div>
+      <ul class="flex flex-col gap-4 mb-8 text-secondary">
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check</span> 1 Project</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check</span> Community Support</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check</span> Global CDN</li>
+      </ul>
+      <a href="login.html" class="btn-secondary w-full">Start Free</a>
+    </div>
+    <div class="bg-panel border border-primary-container rounded-lg p-8 relative neon-glow">
+      <div class="absolute top-0 right-0 bg-primary-container text-[#050505] font-label-sm text-label-sm px-3 py-1 rounded-bl-lg rounded-tr-lg">Most Popular</div>
+      <h3 class="font-headline-md text-headline-md text-primary mb-2">Pro</h3>
+      <div class="mb-6"><span class="text-4xl font-bold text-primary">$20</span><span class="text-secondary">/mo</span></div>
+      <ul class="flex flex-col gap-4 mb-8 text-secondary">
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary-container">check</span> Unlimited Projects</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary-container">check</span> Email Support</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary-container">check</span> Custom Domains</li>
+      </ul>
+      <a href="login.html" class="btn-primary w-full">Upgrade to Pro</a>
+    </div>
+    <div class="bg-panel border border-hairline rounded-lg p-8 hover:border-outline-variant transition-colors">
+      <h3 class="font-headline-md text-headline-md text-primary mb-2">Enterprise</h3>
+      <div class="mb-6"><span class="text-4xl font-bold text-primary">Custom</span></div>
+      <ul class="flex flex-col gap-4 mb-8 text-secondary">
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check</span> Dedicated Infrastructure</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check</span> 24/7 SLA Support</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check</span> SSO Integration</li>
+      </ul>
+      <a href="login.html" class="btn-secondary w-full">Contact Sales</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Footer ================= -->
+<footer class="bg-surface border-t border-hairline py-12 px-gutter">
+  <div class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+    <div class="font-headline-md text-headline-md font-bold text-primary tracking-tighter">NeonDeploy</div>
+    <div class="flex gap-6 font-body-md text-body-md text-secondary">
+      <a class="hover:text-primary transition-colors" href="docs.html">Documentation</a>
+      <a class="hover:text-primary transition-colors" href="activity.html">Status</a>
+      <a class="hover:text-primary transition-colors" href="#">Terms</a>
+      <a class="hover:text-primary transition-colors" href="#">Privacy</a>
+    </div>
+  </div>
+</footer>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script>
+/* Animated hero terminal */
+(function () {
+  const host = document.getElementById("hero-term");
+  const lines = [
+    { icon: "chevron_right", cls: "text-secondary",         text: "git push origin main" },
+    { icon: "refresh",       cls: "text-on-secondary-container", text: "Building project...", spin: true },
+    { icon: "check_circle",  cls: "text-primary-container",  text: "Deployment successful! (1.2s)" },
+    { icon: "public",        cls: "text-secondary",          text: 'Live URL: <a class="text-primary hover:underline" href="projects.html">https://alpha-app.neondeploy.com</a>', gap: true },
+  ];
+  let i = 0;
+  (function next() {
+    if (i >= lines.length) { setTimeout(() => { host.innerHTML = ""; i = 0; next(); }, 4000); return; }
+    const l = lines[i++];
+    const row = document.createElement("div");
+    row.className = `flex items-center gap-2 ${l.cls} ${l.gap ? "mt-4" : ""}`;
+    row.innerHTML = `<span class="material-symbols-outlined text-[16px] ${l.spin ? "animate-spin" : ""}">${l.icon}</span><span>${l.text}</span>`;
+    host.appendChild(row);
+    setTimeout(next, l.spin ? 1100 : 700);
+  })();
+})();
+</script>
+</body>
+</html>

@@ -11,7 +11,6 @@ function extractToken(req) {
     const header = req.headers.authorization || '';
     const [schema, token] = header.split(' ')
     if (schema === 'Bearer' && token) {
-        console.log(token)
         return token
     }
 

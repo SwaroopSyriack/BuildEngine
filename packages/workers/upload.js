@@ -141,7 +141,7 @@ export default async function upload_aws(outputdir, deployment_id) {
 
     if (bucketName) {
         console.log("Deploy the content into the bucket")
-        deploy(outputdir, s3Client, Bucket_name)
+        await deploy(outputdir, s3Client, Bucket_name)
     }
     else {
         console.log("Deploy the bucket failed")

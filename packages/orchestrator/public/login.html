@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeonDeploy — Sign In</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="css/app.css" rel="stylesheet"/>
+</head>
+<body class="font-body-md text-body-md min-h-screen flex flex-col">
+
+<nav class="bg-surface w-full border-b border-outline-variant">
+  <div class="flex justify-between items-center h-16 px-gutter max-w-container-max mx-auto">
+    <a class="font-headline-md text-headline-md font-bold text-primary tracking-tighter" href="index.html">NeonDeploy</a>
+    <button onclick="UI.settingsModal()" class="btn-secondary text-sm">API Settings</button>
+  </div>
+</nav>
+
+<main class="flex-1 relative flex items-center justify-center px-gutter py-16">
+  <div class="absolute inset-0 grid-bg opacity-20 pointer-events-none"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#050505] pointer-events-none"></div>
+
+  <div class="relative z-10 w-full max-w-md">
+    <div class="text-center mb-8">
+      <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary mb-2" id="auth-title">Welcome back</h1>
+      <p class="text-secondary font-code-md text-code-md" id="auth-sub">Sign in to reach your deployments.</p>
+    </div>
+
+    <div class="card p-8">
+      <form id="auth-form" class="space-y-5">
+        <div id="name-row" class="hidden">
+          <label class="field-label" for="name">Full name</label>
+          <input class="field" id="name" placeholder="Swaroop S" type="text" autocomplete="name"/>
+        </div>
+        <div>
+          <label class="field-label" for="email">Email</label>
+          <input class="field" id="email" placeholder="you@company.dev" type="email" required autocomplete="email"/>
+        </div>
+        <div>
+          <label class="field-label" for="password">Password</label>
+          <input class="field" id="password" placeholder="••••••••" type="password" required autocomplete="current-password"/>
+        </div>
+
+        <div id="auth-error" class="text-error font-code-md text-code-md hidden"></div>
+
+        <button class="btn-primary w-full py-3" id="auth-submit" type="submit">Sign In</button>
+      </form>
+
+    </div>
+
+    <p class="text-center text-secondary font-code-md text-code-md mt-6">
+      <span id="switch-text">Don't have an account?</span>
+      <button id="switch-mode" class="text-primary-container hover:underline ml-1">Create one</button>
+    </p>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(function () {
+  let mode = "login";
+  const $ = (id) => document.getElementById(id);
+  const next = () => {
+    const n = UI.qs("next") || "";
+    // Only follow same-site relative page paths.
+    return /^[\w-]+\.html([?#].*)?$/.test(n) ? n : "projects.html";
+  };
+
+  // Already signed in? Skip the form.
+  Api.me().then(() => { location.href = next(); }).catch(() => {});
+
+  if (UI.qs("mode") === "signup") toggleMode();
+  $("switch-mode").addEventListener("click", toggleMode);
+
+  function toggleMode() {
+    mode = mode === "login" ? "signup" : "login";
+    const isLogin = mode === "login";
+    $("auth-title").textContent = isLogin ? "Welcome back" : "Create your account";
+    $("auth-sub").textContent = isLogin ? "Sign in to reach your deployments." : "Ship your first static site in minutes.";
+    $("auth-submit").textContent = isLogin ? "Sign In" : "Create Account";
+    $("switch-text").textContent = isLogin ? "Don't have an account?" : "Already registered?";
+    $("switch-mode").textContent = isLogin ? "Create one" : "Sign in";
+    $("name-row").classList.toggle("hidden", isLogin);
+    $("name").required = !isLogin;
+    $("password").autocomplete = isLogin ? "current-password" : "new-password";
+  }
+
+  $("auth-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = $("auth-submit");
+    const err = $("auth-error");
+    err.classList.add("hidden");
+    btn.disabled = true;
+    const original = btn.textContent;
+    btn.textContent = "Working…";
+    try {
+      const email = $("email").value.trim();
+      const passwd = $("password").value;
+      if (mode === "login") await Api.login(email, passwd);
+      else await Api.signup($("name").value.trim(), email, passwd);
+      location.href = next();
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.classList.remove("hidden");
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+})();
+</script>
+</body>
+</html>
