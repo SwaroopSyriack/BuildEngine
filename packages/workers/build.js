@@ -10,6 +10,7 @@ import { setLiveDeployment } from '@buildengine/shared/models/project.js';
 
 
 
+
 async function runShellCommand(cmd, args, { cwd, timeout, maxBuffer }) {
 
     return new Promise((resolve, reject) => {
@@ -123,9 +124,11 @@ async function runBuild(job) {
 
         if (runResult.exitCode === -1) {
             console.error('Failed to run the container');
+            throw new Error("Timed out running the container");
         }
         if (runResult.timeout) {
             console.error(`Timed out running the container`);
+            throw new Error("Timed out running the container");
         }
 
         const out = findOutDir(repoFolderPath, config.OUT_DIR_CANDIDATES)
