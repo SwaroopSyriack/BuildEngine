@@ -12,7 +12,7 @@ const user_del = db.prepare('DELETE FROM users WHERE id = ? ');
 
 const userProjStmt = db.prepare('SELECT * FROM projects WHERE user_id = ?')
 
-const user_update = db.prepare(`
+const updateuserStmt = db.prepare(`
     UPDATE users
     SET
         name = ?,
@@ -43,13 +43,13 @@ function del_user(id) {
 }
 
 function update_user({ id, name, email, password }) {
-    const result = user_update.run(name, email, password, id);
+    const result = updateuserStmt.run(name, email, password, id);
 
     return result.changes;
 }
 
 function getUserProj(userid) {
-    return getUserProj(userid)
+    return userProjStmt.all(userid)
 }
 
 

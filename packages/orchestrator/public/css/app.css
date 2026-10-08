@@ -1,0 +1,122 @@
+/* ============================================================
+   app.css — shared visual language for every NeonDeploy page
+   ============================================================ */
+
+html, body { background-color: #050505; color: #e5e2e1; }
+body { -webkit-font-smoothing: antialiased; }
+
+/* ---------- Scrollbar ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0d0d0d; }
+::-webkit-scrollbar-thumb { background: #262626; border-radius: 9999px; border: 2px solid #0d0d0d; }
+::-webkit-scrollbar-thumb:hover { background: #3a3939; }
+
+/* ---------- Decorative background ---------- */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, #262626 1px, transparent 1px),
+    linear-gradient(to bottom, #262626 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center;
+}
+
+/* ---------- Cards / borders ---------- */
+.neon-border { border: 1px solid #262626; transition: border-color .3s ease, box-shadow .3s ease; }
+.neon-border:hover,
+.neon-glow:hover,
+.neon-border-hover:hover {
+  border-color: #EFFF00 !important;
+  box-shadow: 0 0 20px rgba(239, 255, 0, .12);
+}
+.card { background-color: #0D0D0D; border: 1px solid #262626; border-radius: .75rem; }
+
+/* ---------- Status pips ---------- */
+.status-pip { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.status-ready,
+.status-active   { background-color: #EFFF00; box-shadow: 0 0 10px rgba(239,255,0,.5); }
+.status-building { background-color: #ffffff; animation: pulse 1.2s ease-in-out infinite; }
+.status-queued   { background-color: #929277; }
+.status-failed   { background-color: #ffb4ab; box-shadow: 0 0 10px rgba(255,180,171,.5); }
+.status-canceled { background-color: #474746; }
+.status-none     { background-color: transparent; border: 1px solid #474746; }
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+  background-color: #EFFF00; color: #050505; font-weight: 600;
+  padding: 8px 16px; border-radius: 4px; transition: opacity .2s, background-color .2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-primary:hover { background-color: #ffffff; }
+.btn-primary:disabled { opacity: .4; cursor: not-allowed; background-color: #EFFF00; }
+
+.btn-secondary {
+  background: transparent; border: 1px solid #262626; color: #fff;
+  padding: 8px 16px; border-radius: 4px; transition: all .2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-secondary:hover { border-color: #EFFF00; color: #EFFF00; }
+
+.btn-danger {
+  background: transparent; border: 1px solid #93000a; color: #ffb4ab;
+  padding: 8px 16px; border-radius: 4px; transition: all .2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-danger:hover { background-color: #93000a; color: #ffdad6; }
+
+/* ---------- Form controls ---------- */
+.field {
+  background: #050505; border: 1px solid #262626; border-radius: 4px;
+  padding: 8px 12px; color: #e5e2e1; width: 100%;
+  font-family: "JetBrains Mono", monospace; font-size: 14px; line-height: 20px;
+  outline: none; transition: border-color .2s;
+}
+.field:focus { border-color: #EFFF00; box-shadow: none; }
+.field::placeholder { color: #6b6b6b; }
+.field-label { font-family: "JetBrains Mono", monospace; font-size: 12px; color: #c8c6c5; display: block; margin-bottom: 6px; }
+select.field { appearance: none; padding-right: 32px; }
+
+/* ---------- Terminal / logs ---------- */
+.terminal {
+  background: #050505; border: 1px solid #262626; border-radius: .5rem;
+  font-family: "JetBrains Mono", monospace; font-size: 13px; line-height: 20px;
+  padding: 16px; overflow: auto; white-space: pre-wrap; word-break: break-word;
+}
+.log-info  { color: #c8c6c5; }
+.log-ok    { color: #EFFF00; }
+.log-warn  { color: #c8c8ab; }
+.log-error { color: #ffb4ab; }
+.log-time  { color: #5f5f5f; margin-right: 10px; }
+
+/* ---------- Toasts ---------- */
+#toast-stack { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
+.toast {
+  background: #0D0D0D; border: 1px solid #262626; border-left: 3px solid #EFFF00;
+  padding: 12px 16px; border-radius: 6px; min-width: 260px; max-width: 380px;
+  font-size: 14px; color: #e5e2e1; box-shadow: 0 8px 30px rgba(0,0,0,.6);
+  animation: toast-in .25s ease-out;
+}
+.toast.error { border-left-color: #ffb4ab; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+/* ---------- Modal ---------- */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+  z-index: 150; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-panel {
+  background: #0D0D0D; border: 1px solid #262626; border-radius: .75rem;
+  width: 100%; max-width: 560px; max-height: 90vh; overflow: auto;
+  animation: modal-in .2s ease-out;
+}
+@keyframes modal-in { from { opacity: 0; transform: scale(.97) } to { opacity: 1; transform: none } }
+
+/* ---------- Skeleton loading ---------- */
+.skeleton { background: linear-gradient(90deg, #131313 25%, #1c1b1b 50%, #131313 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 4px; }
+@keyframes shimmer { 0% { background-position: 200% 0 } 100% { background-position: -200% 0 } }
+
+/* ---------- Misc ---------- */
+.truncate-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+a, button { -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }

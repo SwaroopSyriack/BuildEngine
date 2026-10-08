@@ -5,25 +5,11 @@ import { ensureImage, runContainer } from './docker.js';
 import fs from 'fs'
 import { fail } from 'assert';
 import upload_aws from './upload.js';
+import { updateBuilder, failedBuilder } from "@buildengine/shared/models/deployment.js";
+import { setLiveDeployment } from '@buildengine/shared/models/project.js';
 
 
-// Steps to perform : 
-// create a tempraroy Folder to accomadate the cloned repos 
-// clone the github repo
-// create a a code to clone repo 
-// Valiadte the cloned Repo 
-// Find a way to creat a container mount this path to the container and run the container 
 
-// validate if the pkg file is present
-
-
-// const job = {
-//     Image: '',
-//     buildCmd: '',
-//     deploymentid: `dep-${randomUUID()}`,
-//     projectid: '',
-//     githubUrl: ''
-// }
 
 async function runShellCommand(cmd, args, { cwd, timeout, maxBuffer }) {
 
@@ -129,8 +115,8 @@ async function runBuild(job) {
 
         const runResult = await runContainer(
             {
-                image: config.DEFAULT_IMAGE_NAME,
-                buildCmd: config.DEFAULT_BUILD_CMD,
+                image: job.build_image,
+                buildCmd: job.build_command,
                 RepoDir: repoFolderPath,
                 timeOut: config.RUN_TIME_OUT
             }
@@ -138,9 +124,11 @@ async function runBuild(job) {
 
         if (runResult.exitCode === -1) {
             console.error('Failed to run the container');
+            throw new Error("Timed out running the container");
         }
         if (runResult.timeout) {
             console.error(`Timed out running the container`);
+            throw new Error("Timed out running the container");
         }
 
         const out = findOutDir(repoFolderPath, config.OUT_DIR_CANDIDATES)
@@ -152,13 +140,13 @@ async function runBuild(job) {
         console.log('system', `Using output directory: ${out}`);
 
         await upload_aws(path.join(repoFolderPath, out), job.id)
-        console.log(`The Deployment Url is : http://${job.id}.s3-website.${config.AWS_REGION}.amazonaws.com`)
-
-
+        updateBuilder(out, `http://${job.id}.s3-website.${config.AWS_REGION}.amazonaws.com`, job.id)
+        setLiveDeployment(job.project_id, job.id)
+        console.log(`The Deployment Url is : http://${job.id}.s3-website.${config.AWS_REGION}.amazonaws.com`);
     }
     catch (err) {
         console.error('Unexpected Error :', err)
-        console.log(err.message)
+        failedBuilder(err.message, job.id)
     }
 
     finally {

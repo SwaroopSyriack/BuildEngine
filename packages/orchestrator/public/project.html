@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeonDeploy — Project</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="css/app.css" rel="stylesheet"/>
+</head>
+<body class="font-body-md text-body-md flex flex-col min-h-screen">
+
+<div id="app-nav"></div>
+
+<div class="flex flex-1">
+
+  <!-- ================= Side rail ================= -->
+  <aside class="bg-surface-container w-64 sticky top-16 self-start h-[calc(100vh-4rem)] border-r border-outline-variant hidden lg:flex flex-col py-6 px-4 gap-4">
+    <div class="mb-2">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-lg bg-surface flex items-center justify-center border border-outline-variant flex-none">
+          <span class="material-symbols-outlined text-primary" id="rail-icon">rocket_launch</span>
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-primary font-semibold truncate" id="rail-name">Loading…</h2>
+          <span class="font-label-sm text-label-sm text-secondary" id="rail-branch">—</span>
+        </div>
+      </div>
+      <button class="btn-primary w-full" id="rail-deploy">Deploy Now</button>
+    </div>
+
+    <nav class="flex-1 space-y-1 font-label-sm text-label-sm mt-2" id="rail-nav">
+      <button data-tab="overview"    class="rail-item w-full flex items-center gap-3 p-3 rounded-lg transition-all"><span class="material-symbols-outlined">dashboard</span> Overview</button>
+      <button data-tab="deployments" class="rail-item w-full flex items-center gap-3 p-3 rounded-lg transition-all"><span class="material-symbols-outlined">rocket_launch</span> Deployments</button>
+      <button data-tab="domains"     class="rail-item w-full flex items-center gap-3 p-3 rounded-lg transition-all"><span class="material-symbols-outlined">language</span> Domains</button>
+      <button data-tab="env"         class="rail-item w-full flex items-center gap-3 p-3 rounded-lg transition-all"><span class="material-symbols-outlined">key</span> Environment</button>
+      <button data-tab="analytics"   class="rail-item w-full flex items-center gap-3 p-3 rounded-lg transition-all"><span class="material-symbols-outlined">monitoring</span> Analytics</button>
+      <button data-tab="settings"    class="rail-item w-full flex items-center gap-3 p-3 rounded-lg transition-all"><span class="material-symbols-outlined">settings</span> Settings</button>
+    </nav>
+
+    <div class="mt-auto space-y-1 font-label-sm text-label-sm border-t border-outline-variant pt-4">
+      <a href="docs.html" class="flex items-center gap-3 p-3 rounded-lg text-secondary hover:text-primary hover:bg-surface-container-high transition-all"><span class="material-symbols-outlined">help_outline</span> Help</a>
+      <a href="activity.html" class="flex items-center gap-3 p-3 rounded-lg text-secondary hover:text-primary hover:bg-surface-container-high transition-all"><span class="material-symbols-outlined">sensors</span> Activity</a>
+    </div>
+  </aside>
+
+  <!-- ================= Main ================= -->
+  <main class="flex-1 min-w-0 p-gutter bg-background">
+    <div class="max-w-container-max mx-auto space-y-8">
+
+      <!-- Header -->
+      <header class="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-hairline">
+        <div class="min-w-0">
+          <a href="projects.html" class="inline-flex items-center gap-1 text-secondary hover:text-primary font-code-md text-[12px] mb-3">
+            <span class="material-symbols-outlined" style="font-size:14px">arrow_back</span> All projects
+          </a>
+          <div class="flex flex-wrap items-center gap-4 mb-2">
+            <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary tracking-tighter" id="hdr-name">Loading…</h1>
+            <div class="flex items-center gap-2 px-3 py-1 rounded-full border border-hairline bg-surface font-label-sm text-label-sm">
+              <span class="status-pip status-queued" id="hdr-pip"></span>
+              <span id="hdr-status">—</span>
+            </div>
+          </div>
+          <a class="font-code-md text-code-md text-secondary hover:text-primary flex items-center gap-2 w-fit" id="hdr-url" href="#" target="_blank" rel="noopener">
+            — <span class="material-symbols-outlined" style="font-size:16px">open_in_new</span>
+          </a>
+        </div>
+        <div class="flex gap-3 flex-none">
+          <button class="btn-secondary" id="hdr-redeploy">Redeploy</button>
+          <a class="btn-primary" id="hdr-visit" href="#" target="_blank" rel="noopener">
+            Visit Site <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Mobile tabs -->
+      <div class="flex gap-6 border-b border-hairline overflow-x-auto lg:hidden" id="mobile-tabs"></div>
+
+      <!-- Tab body -->
+      <div id="tab-body"></div>
+    </div>
+  </main>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/pages/project.js"></script>
+</body>
+</html>

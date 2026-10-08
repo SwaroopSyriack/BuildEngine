@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS projects (
   id                  TEXT PRIMARY KEY,
-  user_id             TEXT NOT NULL,
+  user_id             INTEGER NOT NULL,
   name                TEXT NOT NULL UNIQUE,
   repo_url            TEXT NOT NULL,
   build_command       TEXT,

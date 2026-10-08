@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeonDeploy — Projects</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="css/app.css" rel="stylesheet"/>
+</head>
+<body class="font-body-md text-body-md">
+
+<div id="app-nav"></div>
+
+<main class="max-w-container-max mx-auto px-gutter py-12">
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+      <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-2">Projects</h1>
+      <p class="text-secondary font-code-md text-code-md">Manage and monitor your deployments.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btn-refresh" class="btn-secondary">
+        <span class="material-symbols-outlined" style="font-size:18px">refresh</span> Refresh
+      </button>
+      <button id="btn-new" class="btn-primary">
+        <span class="material-symbols-outlined" style="font-size:18px">add</span> Create New Project
+      </button>
+    </div>
+  </div>
+
+  <!-- Stat strip -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="stat-strip"></div>
+
+  <!-- Toolbar -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 pb-4 border-b border-hairline">
+    <div class="flex flex-wrap items-center gap-3">
+      <div class="relative">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary" style="font-size:16px">search</span>
+        <input id="filter-q" class="field pl-9 md:w-64" placeholder="Filter projects..." type="text"/>
+      </div>
+      <div class="relative">
+        <select id="filter-status" class="field">
+          <option value="all">All Status</option>
+          <option value="ready">Ready</option>
+          <option value="building">Building</option>
+          <option value="queued">Queued</option>
+          <option value="failed">Failed</option>
+          <option value="none">Not deployed</option>
+        </select>
+        <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-secondary pointer-events-none" style="font-size:16px">expand_more</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-1 border border-hairline rounded p-1">
+      <button data-view="grid" class="view-btn p-1 rounded bg-hairline text-primary"><span class="material-symbols-outlined text-sm block">grid_view</span></button>
+      <button data-view="list" class="view-btn p-1 rounded text-secondary hover:text-primary"><span class="material-symbols-outlined text-sm block">list</span></button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/pages/projects.js"></script>
+</body>
+</html>

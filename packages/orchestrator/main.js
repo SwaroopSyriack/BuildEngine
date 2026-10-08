@@ -1,19 +1,23 @@
 import express from "express";
 import path from 'path'
 import { fileURLToPath } from "url";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 import config from "@buildengine/shared/config.js";
 import deprouter from "./routes/deployment.js";
 import projrouter from "./routes/project.js"
 import userrouter from "./routes/user.js";
 import authrouter from './routes/auth.js'
 import { deployInsert } from "@buildengine/shared/models/deployment.js";
-import { getByID, updateRepo } from "@buildengine/shared/models/project.js";
+import { getByID } from "@buildengine/shared/models/project.js";
 
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express()
+app.use(cors({ origin: "http://localhost:5500", credentials: true }));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 

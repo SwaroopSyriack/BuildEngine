@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeonDeploy — Activity</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="js/theme.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="css/app.css" rel="stylesheet"/>
+</head>
+<body class="font-body-md text-body-md">
+
+<div id="app-nav"></div>
+
+<main class="max-w-container-max mx-auto px-gutter py-12">
+  <div class="mb-8">
+    <h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-2">Activity</h1>
+    <p class="text-secondary font-code-md text-code-md">Every project and deployment across your account.</p>
+  </div>
+  <div class="bg-panel rounded-xl neon-border overflow-hidden">
+    <div id="activity-list" class="divide-y divide-hairline"></div>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script>
+(async function () {
+  UI.mountNav("activity");
+  const host = document.getElementById("activity-list");
+  const ICONS = { deploy: ["rocket_launch", "text-primary-container"], build: ["sync", "text-secondary"], error: ["error", "text-error"], project: ["folder", "text-secondary"] };
+
+  host.innerHTML = Array.from({ length: 5 }).map(() => `<div class="p-5"><div class="h-4 w-2/3 skeleton"></div></div>`).join("");
+  try {
+    await UI.requireSession();
+    const items = await Api.activity();
+    host.innerHTML = items.length
+      ? items.map((a) => {
+          const [icon, cls] = ICONS[a.type] || ICONS.build;
+          return `<a href="${a.href}" class="p-5 flex items-center gap-4 hover:bg-surface-container/40 transition-colors">
+            <span class="material-symbols-outlined ${cls}" style="font-size:20px">${icon}</span>
+            <div class="min-w-0 flex-1">
+              <div class="text-primary truncate">${UI.escape(a.text)}</div>
+              <div class="font-code-md text-[11px] text-secondary truncate">${UI.escape(a.meta || "")}</div>
+            </div>
+            <div class="font-code-md text-[11px] text-secondary flex-none">${UI.timeAgo(a.at)}</div>
+          </a>`;
+        }).join("")
+      : `<div class="p-12 text-center text-secondary font-code-md text-code-md">No activity yet.</div>`;
+  } catch (e) {
+    host.innerHTML = `<div class="p-6">${UI.errorState(e.message, () => location.reload())}</div>`;
+  }
+})();
+</script>
+</body>
+</html>

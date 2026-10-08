@@ -19,6 +19,16 @@ WHERE id = (
 RETURNING id, project_id, repo_url, build_command, build_image, output_dir`)
 
 
+const updateWorkerBuliderStmt = db.prepare(`UPDATE deployments
+SET status = 'ready' , output_dir = ? , storage_path = ? ,finished_at = datetime('now')
+WHERE id = ?`)
+
+
+const updateWorkerFailedStmt = db.prepare(`UPDATE deployments
+SET status = 'failed' , error_message = ? ,finished_at = datetime('now')
+WHERE id = ?`)
+
+
 function deployInsert({ project_id, repo_url, build_command, build_image, }) {
     const id = newID()
     deployStmt.run(id, project_id, repo_url, build_command, build_image)
@@ -34,5 +44,13 @@ function getNextWorker(id) {
     return getNextWorkerStmt.get(id)
 }
 
+function updateBuilder(output_dir, storage_path, id) {
+    return updateWorkerBuliderStmt.run(output_dir, storage_path, id)
+}
 
-export { deployInsert, getByID, getNextWorker }
+function failedBuilder(error_message, id) {
+    return updateWorkerFailedStmt.run(error_message, id)
+}
+
+
+export { deployInsert, getByID, getNextWorker, updateBuilder, failedBuilder }

@@ -23,6 +23,8 @@ const updateRepoStmt = db.prepare(`
   WHERE id = ?
 `);
 
+const setLiveDeploymentStmt = db.prepare('UPDATE projects SET live_deployment_id = ? WHERE id = ?');
+
 
 
 function create_project({ user_id, name, repo_url, build_command, build_image, output_dir, spa_fallback }) {
@@ -52,7 +54,11 @@ function getDeploymensts(projID) {
 }
 
 function updateRepo(projectId, repoUrl, buildCommand, buildImage) {
-    return updateRepo.run(repoUrl, buildCommand, buildImage, projectId)
+    return updateRepoStmt.run(repoUrl, buildCommand, buildImage, projectId)
 }
 
-export { getByName, create_project, listAll, getByID, delProj, getDeploymensts, updateRepo }; 
+function setLiveDeployment(id, deploymentId) {
+    return setLiveDeploymentStmt.run(deploymentId, id)
+}
+
+export { getByName, create_project, listAll, getByID, delProj, getDeploymensts, updateRepo, setLiveDeployment }; 
