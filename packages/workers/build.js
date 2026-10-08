@@ -7,11 +7,12 @@ import { fail } from 'assert';
 import upload_aws from './upload.js';
 import { updateBuilder, failedBuilder } from "@buildengine/shared/models/deployment.js";
 import { setLiveDeployment } from '@buildengine/shared/models/project.js';
+import { appendLogs } from '@buildengine/shared/models/deployment.js';
 
 
 
 
-async function runShellCommand(cmd, args, { cwd, timeout, maxBuffer }) {
+async function runShellCommand(cmd, args, { cwd, timeout, maxBuffer, onLog }) {
 
     return new Promise((resolve, reject) => {
         execFile(cmd, args, {
@@ -22,9 +23,6 @@ async function runShellCommand(cmd, args, { cwd, timeout, maxBuffer }) {
                 reject(error)
                 return;
             }
-
-            console.log('Clone Successfull')
-            console.log(stdout)
             resolve(stdout)
         })
     })
@@ -89,14 +87,18 @@ function findOutDir(repoPath, candidates) {
 
 async function runBuild(job) {
 
-    const tmpDir = path.join(config.TMP_DIR, job.id)
+    const deploymentId = job.id;
+    const log = (stream, chunk) => appendLogs(deploymentId, stream, chunk)
+    const tmpDir = path.join(config.TMP_DIR, deploymentId)
     const repoDir = path.join(tmpDir, 'repo')
 
     try {
-        fs.mkdirSync(tmpDir, { recursive: true })
-        console.log('The TMP folder has been created successfully');
 
-        await runShellCommand('git', ['clone', '--depth', '1', job.repo_url, repoDir], { cwd: tmpDir, timeout: config.CLONE_TIME_OUT, maxBuffer: 10 * 1024 * 1024 })
+        fs.mkdirSync(tmpDir, { recursive: true })
+        log('system', `Starting build for ${job.repo_url}`);
+
+        log('system', `Cloning repository (depth 1)...`);
+        await runShellCommand('git', ['clone', '--depth', '1', job.repo_url, repoDir], { cwd: tmpDir, timeout: config.CLONE_TIME_OUT, maxBuffer: 10 * 1024 * 1024, onLog: log })
 
         let repoFolderPath;
 
@@ -139,14 +141,14 @@ async function runBuild(job) {
         }
         console.log('system', `Using output directory: ${out}`);
 
-        await upload_aws(path.join(repoFolderPath, out), job.id)
-        updateBuilder(out, `http://${job.id}.s3-website.${config.AWS_REGION}.amazonaws.com`, job.id)
-        setLiveDeployment(job.project_id, job.id)
-        console.log(`The Deployment Url is : http://${job.id}.s3-website.${config.AWS_REGION}.amazonaws.com`);
+        await upload_aws(path.join(repoFolderPath, out), deploymentId)
+        updateBuilder(out, `http://${deploymentId}.s3-website.${config.AWS_REGION}.amazonaws.com`, job.id)
+        setLiveDeployment(job.project_id, deploymentId)
+        console.log(`The Deployment Url is : http://${deploymentId}.s3-website.${config.AWS_REGION}.amazonaws.com`);
     }
     catch (err) {
         console.error('Unexpected Error :', err)
-        failedBuilder(err.message, job.id)
+        failedBuilder(err.message, deploymentId)
     }
 
     finally {
