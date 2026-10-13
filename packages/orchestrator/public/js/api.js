@@ -247,6 +247,12 @@ const Api = {
     return Api.toDeployment(res.result);
   },
 
+  /** Build log rows, oldest first → [{ ts, stream, chunk }]. `stream` filters to stdout | stderr | system. */
+  async getLogs(id, stream) {
+    const rows = await Api.call("getLogs", { params: { id }, query: { format: "json", stream } });
+    return (Array.isArray(rows) ? rows : []).map((l) => ({ ts: Api.ts(l.ts), stream: l.stream, chunk: l.chunk ?? "" }));
+  },
+
   /* ---------------- activity (derived) ----------------
      There is no /activity route, so the feed is built from the
      user's projects and their deployment history. */

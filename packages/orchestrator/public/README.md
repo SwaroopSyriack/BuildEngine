@@ -19,7 +19,7 @@ Open http://localhost:3000.
 | `index.html` | Landing page |
 | `login.html` | Sign in / sign up (`POST /auth/login`, `/auth/signup`) |
 | `projects.html` | Your projects, status from latest deployment, create-project modal |
-| `project.html` | Project workspace: Overview · Deployments · Settings (+ placeholder tabs) |
+| `project.html` | Project workspace: Overview · Deployments (Details popup with live build logs) · Settings (+ placeholder tabs) |
 | `activity.html` | Feed derived from your projects' deployment history |
 | `docs.html` | Live list of routes used / routes still missing |
 
@@ -46,6 +46,7 @@ DELETE /projects/:id
 GET    /projects/:id/deployments  → { result: [Deployment] }
 POST   /deploy/:id                → { deploymentId, status }
 GET    /deployments/:id           → { result: Deployment }
+GET    /deployments/:id/logs      ?format=json[&stream=stdout|stderr|system] → [{ ts, stream, chunk }]
 GET    /health
 ```
 
@@ -53,7 +54,6 @@ GET    /health
 
 ```
 PATCH  /projects/:id                 edit build settings
-GET    /deployments/:id/logs         build logs
 POST   /deployments/:id/rollback     rollback
 GET|POST /projects/:id/domains, DELETE /domains/:id
 GET|PUT  /projects/:id/env

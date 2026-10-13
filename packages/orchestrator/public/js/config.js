@@ -54,6 +54,7 @@ const ENDPOINTS = {
   // Inserts a 'pending' row; packages/workers/main.js must be running to build it.
   createDeployment: { method: "POST",   path: "/deploy/:id" },   // main.js
   getDeployment:    { method: "GET",    path: "/deployments/:id" },
+  getLogs:          { method: "GET",    path: "/deployments/:id/logs" }, // ?format=json → [{ ts, stream, chunk }], optional ?stream=stdout|stderr|system
 
   // ---- users (routes/user.js) ----
   listUserProjects: { method: "GET",    path: "/users/:id/projects" },
@@ -63,7 +64,6 @@ const ENDPOINTS = {
    Pages show a "not available yet" state for these instead of calling them. */
 const MISSING_ROUTES = {
   updateProject: "PATCH  /projects/:id",
-  getLogs:       "GET    /deployments/:id/logs",
   rollback:      "POST   /deployments/:id/rollback",
   domains:       "GET|POST /projects/:id/domains, DELETE /domains/:id",
   env:           "GET|PUT /projects/:id/env",

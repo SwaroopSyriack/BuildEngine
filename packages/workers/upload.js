@@ -4,6 +4,7 @@ import fs from "fs";
 import path from "path";
 import mime from "mime-types"
 import 'dotenv/config';
+import { appendLogs, failedBuilder } from "@buildengine/shared/models/deployment.js";
 
 
 function getFilesRecursively(dir) {
@@ -27,18 +28,18 @@ function getFilesRecursively(dir) {
     return results;
 }
 
-async function createBucket(s3Client, bucketName, region) {
+async function createBucket(s3Client, bucketName, region, { onLog }) {
     try {
         await s3Client.send(new CreateBucketCommand({
             Bucket: bucketName,
             CreateBucketConfiguration: region !== "us-east-1" ? { LocationConstraint: region } : undefined,
         }));
 
-        console.log(`Bucket ${bucketName} created and configured for static hosting`);
+        onLog('system', `Bucket ${bucketName} created `)
 
     } catch (err) {
         if (err.name !== "BucketAlreadyOwnedByYou") throw err;
-        console.log(`Bucket ${bucketName} already exists, reusing it`);
+        onLog('system', `Bucket ${bucketName} already exists, reusing it`);
     }
 
     await s3Client.send(new PutPublicAccessBlockCommand({
@@ -74,17 +75,13 @@ async function createBucket(s3Client, bucketName, region) {
         },
     }));
 
-    console.log(`Bucket ${bucketName} configured for static hosting`);
+    onLog('system', `Bucket ${bucketName} created and configured for static hosting`)
 
     return bucketName
-
-
-
-
 }
 
 
-async function deploy(outdir, S3Client, BUCKET_NAME) {
+async function deploy(outdir, S3Client, BUCKET_NAME, { onfail }) {
 
     try {
 
@@ -92,7 +89,7 @@ async function deploy(outdir, S3Client, BUCKET_NAME) {
         const fileGet = getFilesRecursively(outdir);
 
         if (fileGet.length === 0) {
-            throw new Error("Build output is empty");
+            onfail("Build output is empty");
         }
 
         for (const filepath of fileGet) {
@@ -103,7 +100,7 @@ async function deploy(outdir, S3Client, BUCKET_NAME) {
 
             const fileStream = fs.createReadStream(filepath)
             fileStream.on('error', (err) => {
-                console.error(`Failed to read ${filepath}:`, err);
+                onfail(`Failed to read ${filepath}:`, err);
             });
             const content_type = mime.lookup(filepath) || 'application/octet-stream';
 
@@ -118,18 +115,22 @@ async function deploy(outdir, S3Client, BUCKET_NAME) {
 
 
         }
-        console.log("Deployment Successfull")
     }
 
     catch (err) {
-        console.log("Deployment Failed", err)
-        throw err;
+        onfail("Deployment Failed", err)
     }
 
 }
 
 
 export default async function upload_aws(outputdir, deployment_id) {
+
+    const log = (stream, chunk) => appendLogs(deployment_id, stream, chunk)
+    const fail = (errmsg) => {
+        log('system', `FAILED: ${errmsg}`);
+        failedBuilder(errmsg, deployment_id)
+    }
 
     const s3Client = new S3Client({
         region: process.env.AWS_REGION, // Replace with your bucket's region
@@ -142,12 +143,12 @@ export default async function upload_aws(outputdir, deployment_id) {
     const Bucket_name = `${deployment_id}`;
 
 
-    console.log("Creating the Bucket.....");
-    const bucketName = await createBucket(s3Client, Bucket_name, process.env.AWS_REGION)
-
+    log('system', "Creating the Bucket.....");
+    const bucketName = await createBucket(s3Client, Bucket_name, process.env.AWS_REGION, { onLog: log })
     if (bucketName) {
-        console.log("Deploy the content into the bucket")
-        await deploy(outputdir, s3Client, Bucket_name)
+        log('system', "Deploying the content into the bucket");
+        await deploy(outputdir, s3Client, Bucket_name, { onLog: log })
+        log('system', "Deployment Successfull click the link to access the Site");
     }
 
 
