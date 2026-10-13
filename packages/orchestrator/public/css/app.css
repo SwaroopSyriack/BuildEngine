@@ -109,6 +109,7 @@ select.field { appearance: none; padding-right: 32px; }
   width: 100%; max-width: 560px; max-height: 90vh; overflow: auto;
   animation: modal-in .2s ease-out;
 }
+.modal-panel:has(#log-out) { max-width: 960px; } /* deployment details + build logs popup */
 @keyframes modal-in { from { opacity: 0; transform: scale(.97) } to { opacity: 1; transform: none } }
 
 /* ---------- Skeleton loading ---------- */

@@ -225,15 +225,76 @@
            </div>
            <button data-close class="material-symbols-outlined text-secondary hover:text-primary">close</button>
          </div>
-         <div class="terminal max-h-96 overflow-auto" id="dep-out">Loading…</div>
-         <p class="text-secondary font-code-md text-[11px] mt-3">Build logs aren't exposed by the API yet (${UI.escape(Config.MISSING_ROUTES.getLogs.replace(/\s+/g, " "))}).</p>
+         <div class="terminal max-h-48 overflow-auto" id="dep-out">Loading…</div>
+
+         <div class="flex flex-wrap items-center justify-between gap-3 mt-5 mb-2">
+           <div class="flex items-center gap-2">
+             <span class="font-label-sm text-label-sm text-secondary">Build Logs</span>
+             <span id="log-live" class="hidden items-center gap-1 font-code-md text-[10px] text-primary-container">
+               <span class="status-pip status-building"></span>LIVE
+             </span>
+           </div>
+           <select id="log-stream" class="field !w-auto !py-1 text-[12px]">
+             <option value="">All streams</option>
+             <option value="stdout">stdout</option>
+             <option value="stderr">stderr</option>
+             <option value="system">system</option>
+           </select>
+         </div>
+         <div class="terminal h-80" id="log-out">Loading…</div>
+
          <div class="flex justify-end gap-3 mt-5">
+           <button class="btn-secondary" id="log-copy">Copy logs</button>
            <button class="btn-primary" data-close>Close</button>
          </div>
        </div>`,
       {
         onMount: async (root) => {
           const out = root.querySelector("#dep-out");
+          const logOut = root.querySelector("#log-out");
+          const live = root.querySelector("#log-live");
+          const streamEl = root.querySelector("#log-stream");
+          const STREAM_CLASS = { system: "log-ok", stderr: "log-error", stdout: "log-info" };
+          let lines = [];
+          let logTimer;
+
+          const clock = (iso) => (iso ? new Date(iso).toLocaleTimeString([], { hour12: false }) : "");
+
+          async function loadLogs() {
+            clearTimeout(logTimer);
+            if (!root.isConnected) return; // modal closed
+            const atBottom = logOut.scrollHeight - logOut.scrollTop - logOut.clientHeight < 40;
+            try {
+              const [rows, d] = await Promise.all([Api.getLogs(depId, streamEl.value), Api.getDeployment(depId)]);
+              if (!root.isConnected) return;
+              // A chunk can hold several lines; give each its own row with the chunk's time.
+              lines = rows.flatMap((r) =>
+                r.chunk.replace(/\n$/, "").split("\n").map((text) => ({ time: clock(r.ts), stream: r.stream, text }))
+              );
+              logOut.innerHTML = lines.length
+                ? lines
+                    .map((l) => `<div><span class="log-time">${UI.escape(l.time)}</span><span class="${STREAM_CLASS[l.stream] || "log-info"}">${UI.escape(l.text)}</span></div>`)
+                    .join("")
+                : `<span class="log-time">${isBusy(d.status) ? "Waiting for the worker to write logs…" : "No logs for this deployment."}</span>`;
+              if (atBottom) logOut.scrollTop = logOut.scrollHeight;
+
+              // Keep following the build while it's running.
+              const running = isBusy(d.status) && !d.stale;
+              live.classList.toggle("hidden", !running);
+              live.classList.toggle("inline-flex", running);
+              if (running) logTimer = setTimeout(loadLogs, 2500);
+            } catch (e) {
+              logOut.innerHTML = `<span class="log-error">${UI.escape(e.message)}</span>`;
+            }
+          }
+
+          streamEl.addEventListener("change", () => { logOut.scrollTop = 0; loadLogs().then(() => (logOut.scrollTop = logOut.scrollHeight)); });
+          root.querySelector("#log-copy").addEventListener("click", () => {
+            navigator.clipboard?.writeText(lines.map((l) => `${l.time} [${l.stream}] ${l.text}`).join("\n"));
+            UI.toast("Logs copied to clipboard");
+          });
+          loadLogs().then(() => (logOut.scrollTop = logOut.scrollHeight));
+
           try {
             const d = await Api.getDeployment(depId);
             const rows = [

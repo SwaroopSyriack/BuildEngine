@@ -28,7 +28,7 @@ async function ensureImage(imageName) {
 
 }
 
-async function runContainer({ image, buildCmd, RepoDir, timeOut }) {
+async function runContainer({ image, buildCmd, RepoDir, timeOut, onLog }) {
 
     const container = await docker.createContainer({
         Image: image,
@@ -38,10 +38,8 @@ async function runContainer({ image, buildCmd, RepoDir, timeOut }) {
         HostConfig: {
             Binds: [`${RepoDir}:/workspace`],
             Memory: config.CONTAINER_MEMORY_BYTES,
-            NetworkMode: 'bridge',
-            AutoRemove: true
+            NetworkMode: 'bridge'
         },
-
     })
 
     try {
@@ -50,13 +48,13 @@ async function runContainer({ image, buildCmd, RepoDir, timeOut }) {
 
         const stdoutWritable = new Writable({
             write(chunk, _enc, cb) {
-                console.log('stdout', chunk.toString('utf8'));
+                onLog('stdout', chunk.toString('utf8'));
                 cb();
             },
         });
         const stderrWritable = new Writable({
             write(chunk, _enc, cb) {
-                console.log('stderr', chunk.toString('utf8'));
+                onLog('stdout', chunk.toString('utf8'));
                 cb();
             },
         });
@@ -81,7 +79,7 @@ async function runContainer({ image, buildCmd, RepoDir, timeOut }) {
 
     }
     finally {
-        // (await container).remove({ force: true }).catch(() => { })
+        (await container).remove({ force: true }).catch(() => { })
     }
 
 }

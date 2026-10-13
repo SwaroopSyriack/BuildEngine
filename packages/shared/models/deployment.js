@@ -30,11 +30,11 @@ WHERE id = ?`)
 
 const appendLogsStmt = db.prepare(`INSERT INTO build_logs (deployment_id , stream , chunk) VALUES (? , ? ,? )`)
 
-const getLogsStmt = db.prepare(`SELECT ts, stream, chunk FROM  build_logs WHERE deployment_id = ? ORDER BY AESC`)
+const getLogsStmt = db.prepare(`SELECT ts, stream, chunk FROM  build_logs WHERE deployment_id = ? ORDER BY id ASC`)
 
-const getFilteredLogsStmt = db.prepare(`SELECT ts, stream, chunk FROM  build_logs WHERE deployment_id = ? and stream = ? ORDER BY AESC`)
+const getFilteredLogsStmt = db.prepare(`SELECT ts, stream, chunk FROM  build_logs WHERE deployment_id = ? and stream = ? ORDER BY id ASC`)
 
-const commitShaStmt = db.prepare(`Update deployments SET commit_sha = ? where deployment_id = ?`)
+const commitShaStmt = db.prepare(`Update deployments SET commit_sha = ? where id = ?`)
 
 
 function deployInsert({ project_id, repo_url, build_command, build_image, }) {
@@ -69,8 +69,8 @@ function getLogs(deployment_id, stream) {
     return stream ? getFilteredLogsStmt.all(deployment_id, stream) : getLogsStmt.all(deployment_id)
 }
 
-function commit_sha(commitsha) {
-    return commitShaStmt.run(commitsha)
+function commit_sha(id, commitsha) {
+    return commitShaStmt.run(commitsha, id)
 }
 
 

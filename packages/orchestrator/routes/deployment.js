@@ -1,5 +1,5 @@
 import express from 'express';
-import { getByID } from '@buildengine/shared/models/deployment.js';
+import { getByID, getLogs } from '@buildengine/shared/models/deployment.js';
 import { requireAuth } from '../middleware/auth.js';
 import { deploySummary } from '../serialize.js';
 
@@ -33,6 +33,36 @@ router.get('/:id', (req, res) => {
             message: 'Internal server error'
         });
     }
+})
+
+
+router.get('/:id/logs', (req, res) => {
+
+    try {
+        const deployment = getByID(req.params.id);
+        if (!deployment) return res.status(404).json({ error: 'deployment not found' });
+
+        const streamFilter = ['stdout', 'stderr', 'system'].includes(req.query.stream) ? req.query.stream : null;
+        const logs = getLogs(deployment.id, streamFilter);
+
+        if (req.query.format === 'json') {
+            return res.json(logs.map((l) => ({ ts: l.ts, stream: l.stream, chunk: l.chunk })));
+        }
+
+        res.type('text/plain');
+        res.send(logs.map((l) => `[${l.ts}] [${l.stream}] ${l.chunk}`).join('\n'));
+
+    }
+
+    catch (err) {
+        console.error(err)
+        return res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
+
+
+
 })
 
 
