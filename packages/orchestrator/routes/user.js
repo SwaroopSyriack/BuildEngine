@@ -3,6 +3,7 @@ import { getByEmail, create_user, getAllUsers, del_user, getUserProj } from '@bu
 import { getUserByID } from '@buildengine/shared/models/user.js';
 import bcrypt from 'bcrypt'
 import { projSumamry, userSummary } from '../serialize.js';
+import { requireAuth } from '../middleware/auth.js';
 
 
 const router = express.Router();
