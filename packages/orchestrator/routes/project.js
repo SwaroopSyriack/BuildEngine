@@ -10,7 +10,7 @@ router.use(requireAuth)
 
 router.get('/', (req, res) => {
 
-    const result = listAll()
+    const result = listAll(req.userId)
 
     return res.status(200).json({
         message: 'Fetched all items',

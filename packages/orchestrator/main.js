@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.get('/health', (req, res) => {
-    return res.status(201).json({ message: 'HEALTH OK', service: 'orchestrator' })
+    return res.status(200).json({ message: 'HEALTH OK', service: 'orchestrator' })
 })
 
 

@@ -43,7 +43,7 @@ router.post('/signup', async (req, res) => {
         const { name, email, passwd } = req.body || {};
 
         if ((!name) || (!email) || (!passwd)) {
-            return res.status(400).json({ messsage: "Email and Password Cannot be Empty" })
+            return res.status(400).json({ message: "Email and Password Cannot be Empty" })
         }
         if (getByEmail(email)) {
             return res.status(409).json({ message: " The Account of the user already exits " })
@@ -123,7 +123,7 @@ router.get('/me', (req, res) => {
         return res.status(200).json({ user: userSummary(user) });
     }
     catch (err) {
-        return res.status(500).json({ message: 'Invalid Session' });
+        return res.status(401).json({ message: 'Invalid Session' });
     }
 })
 

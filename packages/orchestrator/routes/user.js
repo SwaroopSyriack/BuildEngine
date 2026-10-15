@@ -6,6 +6,7 @@ import { projSumamry, userSummary } from '../serialize.js';
 
 
 const router = express.Router();
+router.use(requireAuth)
 
 
 router.get('/', (req, res) => {

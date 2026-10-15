@@ -12,7 +12,7 @@ const insertStmt = db.prepare('INSERT INTO projects(id,user_id,name,repo_url,bui
 
 const getByIDStmt = db.prepare('SELECT * FROM projects WHERE id = ?');
 
-const listAllStmt = db.prepare('SELECT * FROM projects');
+const listAllStmt = db.prepare('SELECT * FROM projects WHERE user_id = ?');
 
 const delProjStmt = db.prepare('DELETE FROM projects WHERE id = ? ');
 
@@ -41,8 +41,8 @@ function getByID(id) {
     return getByIDStmt.get(id)
 }
 
-function listAll() {
-    return listAllStmt.all()
+function listAll(userid) {
+    return listAllStmt.all(userid)
 }
 
 function delProj(id) {
