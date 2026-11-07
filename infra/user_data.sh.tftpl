@@ -1,0 +1,204 @@
+#!/bin/bash
+# Rendered by Terraform templatefile(). Values like ${project_name} are filled in by Terraform;
+# bash variables below are written as $VAR (no braces) so Terraform leaves them alone.
+#
+# This only prepares the machine. The app itself is shipped by CI as a release tarball
+# (see infra/scripts/app-deploy.sh); at the end we deploy whatever release is current.
+set -euxo pipefail
+
+export AWS_DEFAULT_REGION="${aws_region}"
+
+APP_USER=app
+APP_BASE=/opt/${project_name}
+DATA_DIR=/var/lib/${project_name}
+WORK_DIR=/var/lib/${project_name}-work
+CONF_DIR=/etc/${project_name}
+
+############################################
+# 1. Packages: nginx, Docker (worker runs user builds in containers), build tools
+#    for optional native deps (bcrypt, cpu-features), Node
+############################################
+dnf install -y nginx git sqlite gcc-c++ make python3 xfsprogs docker
+curl -fsSL https://rpm.nodesource.com/setup_${node_major}.x | bash -
+dnf install -y nodejs
+
+# 2 GB swap so npm installs and builds don't OOM
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+fi
+
+id -u $APP_USER >/dev/null 2>&1 || useradd --system --create-home --home-dir /home/$APP_USER --shell /sbin/nologin $APP_USER
+usermod -aG docker $APP_USER
+
+systemctl enable --now docker
+# Pre-pull the default build image: the worker's first build is much faster with it cached
+docker pull node:20-bullseye || true
+
+############################################
+# 2. Mount the persistent data volume (format only if brand new)
+############################################
+VOL_DEV="/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_$(echo "${data_volume_id}" | tr -d '-')"
+for i in $(seq 1 60); do
+  [ -e "$VOL_DEV" ] && break
+  echo "waiting for data volume ($i)..."; sleep 5
+done
+[ -e "$VOL_DEV" ] || { echo "data volume ${data_volume_id} never attached"; exit 1; }
+
+if ! blkid "$VOL_DEV" >/dev/null 2>&1; then
+  mkfs.xfs "$VOL_DEV"
+fi
+
+mkdir -p $DATA_DIR
+VOL_UUID=$(blkid -s UUID -o value "$VOL_DEV")
+grep -q "$VOL_UUID" /etc/fstab || echo "UUID=$VOL_UUID $DATA_DIR xfs defaults,nofail 0 2" >> /etc/fstab
+mountpoint -q $DATA_DIR || mount $DATA_DIR
+
+# data/ holds the SQLite DB (persistent). The build workspace stays on the root disk:
+# it is scratch space, and must NOT be under /tmp because the units use PrivateTmp and
+# the Docker daemon (outside that namespace) bind-mounts these paths into build containers.
+mkdir -p "$DATA_DIR/data" "$WORK_DIR" "$APP_BASE/releases"
+chown -R $APP_USER:$APP_USER $DATA_DIR $WORK_DIR $APP_BASE
+
+############################################
+# 3. App config + systemd units
+############################################
+mkdir -p $CONF_DIR
+
+# Read by app-deploy
+cat > /etc/app-deploy.conf <<EOF
+PROJECT='${project_name}'
+APP_USER=$APP_USER
+APP_BASE=$APP_BASE
+DATA_DIR=$DATA_DIR
+WORK_DIR=$WORK_DIR
+CONF_DIR=$CONF_DIR
+SSM_PREFIX='${ssm_prefix}'
+AWS_DEFAULT_REGION='${aws_region}'
+ARTIFACTS_BUCKET='${artifacts_bucket}'
+EOF
+
+# One line per service: "<name> <port|->", used by app-deploy for restarts and health checks
+cat > $CONF_DIR/services <<EOF
+%{ for name, svc in services ~}
+${name} ${svc.port != null ? svc.port : "-"}
+%{ endfor ~}
+EOF
+
+# Non-secret env for the app. Secrets (JWT_SECRET, S3 keys) come from SSM into secrets.env.
+cat > $CONF_DIR/base.env <<EOF
+NODE_ENV=production
+AWS_REGION=${sites_aws_region}
+EOF
+
+# Group target: `systemctl start|stop ${project_name}.target` controls every service
+cat > /etc/systemd/system/${project_name}.target <<'EOF'
+[Unit]
+Description=${project_name} (all services)
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+%{ for name, svc in services ~}
+cat > /etc/systemd/system/${project_name}-${name}.service <<'EOF'
+[Unit]
+Description=${project_name} ${name}
+After=network-online.target docker.service
+Wants=network-online.target
+RequiresMountsFor=/var/lib/${project_name}
+PartOf=${project_name}.target
+# Don't crash-loop before the first release has been deployed
+ConditionPathExists=/opt/${project_name}/current
+
+[Service]
+Type=simple
+User=app
+Group=app
+WorkingDirectory=/opt/${project_name}/current
+EnvironmentFile=/etc/${project_name}/base.env
+EnvironmentFile=-/etc/${project_name}/secrets.env
+ExecStart=/bin/bash -c 'exec ${svc.command}'
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=${project_name}.target
+EOF
+
+%{ endfor ~}
+systemctl daemon-reload
+systemctl enable ${project_name}.target %{ for name, svc in services }${project_name}-${name}.service %{ endfor }
+
+############################################
+# 4. nginx reverse proxy to the public service - catches every hostname
+############################################
+cat > /etc/nginx/nginx.conf <<'EOF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log notice;
+pid /run/nginx.pid;
+include /usr/share/nginx/modules/*.conf;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    access_log    /var/log/nginx/access.log;
+    sendfile      on;
+    server_tokens off;
+
+    client_max_body_size ${max_upload_size};
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+
+    server {
+        listen 80 default_server;
+        server_name _;
+
+        location / {
+            proxy_pass http://127.0.0.1:${public_port};
+            proxy_http_version 1.1;
+            proxy_set_header Host              $host;
+            proxy_set_header X-Real-IP         $remote_addr;
+            proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Upgrade           $http_upgrade;
+            proxy_set_header Connection        $connection_upgrade;
+            proxy_read_timeout      300s;
+            proxy_request_buffering off;
+        }
+    }
+}
+EOF
+
+nginx -t
+systemctl enable --now nginx
+
+############################################
+# 5. Deploy the current release, if CI has published one yet.
+#    (On a brand-new stack the CD pipeline deploys right after terraform apply.)
+############################################
+if aws s3 cp "s3://${artifacts_bucket}/current/app-deploy.sh" /usr/local/bin/app-deploy; then
+  chmod 755 /usr/local/bin/app-deploy
+  VERSION=$(aws s3 cp "s3://${artifacts_bucket}/current/version" -)
+  /usr/local/bin/app-deploy "s3://${artifacts_bucket}/current/app.tar.gz" "$VERSION"
+else
+  echo "No release published yet - waiting for CI to deploy."
+fi
