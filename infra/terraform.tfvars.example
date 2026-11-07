@@ -1,0 +1,13 @@
+# Optional overrides for local runs: copy to terraform.tfvars and edit.
+# CI uses the defaults in variables.tf (plus TF_VAR_* from repo variables).
+
+# aws_region       = "ap-south-1"
+# instance_type    = "t3.medium"
+# sites_aws_region = "ap-southeast-2" # must match AWS_REGION in packages/shared/config.js
+
+# services = {
+#   orchestrator = { command = "node packages/orchestrator/main.js", port = 3000, public = true }
+#   worker       = { command = "node packages/workers/main.js" }
+# }
+
+# enable_ssh = false
