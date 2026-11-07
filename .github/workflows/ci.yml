@@ -5,9 +5,9 @@ name: CI
 
 on:
   push:
-    branches: [ "feature/addtest" ]
+    branches: [ "feature/addops" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 jobs:
   tests:
