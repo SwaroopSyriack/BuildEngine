@@ -1,7 +1,187 @@
-thimgs that i have done now :
+# BuildEngine
 
-create the validation of project in the deployment of main.js in orchestrator.
+A self-hosted static site deployment platform: a small Netlify/Vercel you run yourself.
+Give it a Git repository and it clones the code, builds it in a Docker container, and
+publishes the output to S3 as a live website. Every build streams logs you can follow
+from the dashboard.
 
-To do complete the .deploy/id enpoint validet other endpoint and connect deploy and worker
+## Features
 
-This is the todo list link : [text](https://www.notion.so/33dff03aeec38022b3dbd2690c3232a4?v=33dff03aeec3806ab4a1000c30686746&source=copy_link)
+- **Accounts:** sign up and log in with a JWT session (httpOnly cookie or Bearer token)
+- **Projects:** connect a repo with optional build command, build image, output directory and SPA fallback
+- **One-click deploys:** each deploy is queued, built in an isolated Docker container and uploaded to S3
+- **Live build logs:** stdout, stderr and system lines, shown live in the UI while a build runs
+- **Deployment history:** status, duration, errors and a link to each live site
+- **Dashboard (NeonDeploy UI):** project grid, project workspace and activity feed, served by the API itself
+
+## Architecture
+
+```
+            ┌──────────────────────────── one server ────────────────────────────┐
+ browser ──►│ nginx :80 ──► orchestrator :3000 (Express API + UI)                │
+            │                       │                                            │
+            │                       ▼                                            │
+            │              SQLite  data/buildengine.db  ◄── worker (polls queue)  │
+            │                                               │                    │
+            │                                               ├─ git clone         │
+            │                                               ├─ Docker build      │
+            │                                               └─ upload ───────────┼──► S3 bucket per
+            └────────────────────────────────────────────────────────────────────┘    deployment (website)
+```
+
+| Package | What it does |
+|---|---|
+| `packages/orchestrator` | Express API (auth, projects, deployments, logs) and the static frontend in `public/` |
+| `packages/workers` | Claims `pending` deployments, clones, builds in Docker, uploads to S3, records the result and logs |
+| `packages/shared` | SQLite connection, schema, models and config shared by both processes |
+
+**Deploy flow:** `POST /deploy/:id` → a `pending` row is added → the worker claims it (`building`) →
+clone → `docker run <image> sh -c "<build command>"` → find `dist/`, `build/` or `out/` →
+create the S3 bucket and upload → `ready` with the site URL, or `failed` with an error message.
+
+## Tech stack
+
+Node.js 22 (ES modules, `node:sqlite`) · Express 5 · SQLite · Docker (dockerode) · AWS S3 ·
+vanilla JS + Tailwind frontend · Terraform · GitHub Actions · nginx · systemd
+
+## Running locally
+
+**Requirements:** Node.js 22+, Git, Docker, and an AWS account for site uploads.
+
+1. Install dependencies from the repo root:
+   ```bash
+   npm install
+   ```
+2. Create `.env` in the repo root:
+   ```env
+   JWT_SECRET=change-me
+   JWT_EXPIRES_IN=7d
+   AWS_REGION=ap-southeast-2
+   AWS_ACCESSKEYID=<access key used to create site buckets>
+   AWS_SECRETACCESSKEY=<secret key>
+   ```
+3. Start the API and UI:
+   ```bash
+   node packages/orchestrator/main.js
+   ```
+4. In a second terminal, start the worker:
+   ```bash
+   node packages/workers/main.js
+   ```
+5. Open http://localhost:3000, create an account, add a project and click **Deploy**.
+
+The database is created automatically at `data/buildengine.db`, and build workspaces go in `tmp/`.
+
+### Configuration (`packages/shared/config.js`)
+
+| Setting | Default | Env override |
+|---|---|---|
+| API port | `3000` | — |
+| Default build image | `node:20-bullseye` | `DEFAULT_BUILD_IMAGE` |
+| Default build command | `npm install && npm run build` | `DEFAULT_BUILD_COMMAND` |
+| Clone timeout | 2 min | `CLONE_TIMEOUT_MS` |
+| Build timeout | 5 min | `BUILD_TIMEOUT_MS` |
+| Build container memory | 1 GB | `CONTAINER_MEMORY_BYTES` |
+| Output folders tried | `dist`, `build`, `out` | — |
+
+## API
+
+All routes except `/health` and `/auth/*` need a session cookie or `Authorization: Bearer <token>`.
+
+| Method | Route | Description |
+|---|---|---|
+| GET | `/health` | Health check |
+| POST | `/auth/signup` | `{ name, email, passwd }` → `{ token, user }` |
+| POST | `/auth/login` | `{ email, passwd }` → `{ token, user }` |
+| GET | `/auth/me` | Current user |
+| POST | `/auth/logout` | Clear the session |
+| GET | `/projects` | Your projects |
+| POST | `/projects` | `{ user_id, name, repo_url, build_command?, build_image?, output_dir?, spa_fallback? }` |
+| GET | `/projects/:id` | One project |
+| DELETE | `/projects/:id` | Delete a project |
+| GET | `/projects/:id/deployments` | A project's deployments |
+| POST | `/deploy/:id` | Queue a deployment → `{ deploymentId, status }` |
+| GET | `/deployments/:id` | One deployment |
+| GET | `/deployments/:id/logs` | Build logs; `?format=json`, `?stream=stdout\|stderr\|system` |
+
+## Tests
+
+Tests use Node's built-in test runner, with no extra dependencies. Each run copies the repo to a
+temporary folder and starts the orchestrator from there, so your real database is never touched.
+
+```bash
+JWT_SECRET=test-secret npm test
+```
+
+| File | Covers |
+|---|---|
+| `tests/syntax.test.js` | Every JS file in `packages/` parses |
+| `tests/api.test.js` | Auth, projects, deploy queue, deployments and logs against a running server |
+| `tests/models.test.js` | Job queue claim, ready/failed results, commit SHA, live deployment, build logs |
+
+Port 3000 must be free while the tests run.
+
+## CI/CD
+
+| Workflow | Runs on | What it does |
+|---|---|---|
+| `ci.yml` | PRs to `dev`, called by CD | `npm ci` + `npm test` on Node 22 and 24 |
+| `infra-ci.yml` | PRs/pushes touching `infra/**`, called by CD | `terraform fmt`/`validate`, tflint, shellcheck, Trivy; on PRs a `terraform plan` posted as a comment |
+| `cd.yml` | Push to `dev`, manual | Tests + infra checks → `terraform apply` → package → upload to S3 → deploy through SSM → `/health` smoke test |
+
+Deploys use GitHub OIDC (no AWS keys stored in GitHub) and AWS SSM (no SSH). A release that
+fails its health check is rolled back automatically on the server.
+
+## Infrastructure (`infra/`)
+
+Terraform creates one EC2 instance (Amazon Linux 2023) running the orchestrator and worker as
+systemd services behind nginx:
+
+- A VPC, public subnet and security group (HTTP only; SSH optional and off by default)
+- An **Elastic IP**, so the address survives instance replacement
+- A separate **encrypted EBS volume** for SQLite, with **daily snapshots** (DLM, 7 kept)
+- An S3 bucket for release artifacts
+- An IAM role for SSM access, app secrets (SSM Parameter Store) and reading releases
+- IMDSv2 enforced, with hop limit 1 so build containers can't read instance credentials
+
+### One-time setup
+
+1. Bootstrap the state bucket, OIDC provider and GitHub roles (run locally with admin credentials):
+   ```bash
+   cd infra/bootstrap && terraform init && terraform apply && terraform output github_variables
+   ```
+   Keep `infra/bootstrap/terraform.tfstate` safe; it's local state and isn't committed.
+2. In GitHub → Settings → Secrets and variables → Actions:
+   - **Variables:** `AWS_REGION`, `TF_STATE_BUCKET`, `AWS_PLAN_ROLE_ARN`, `AWS_DEPLOY_ROLE_ARN`, optional `JWT_EXPIRES_IN`
+   - **Secrets:** `JWT_SECRET`, `SITES_AWS_ACCESS_KEY_ID`, `SITES_AWS_SECRET_ACCESS_KEY`
+3. In GitHub → Settings → Environments, create `production`. Allow deployments from `dev` only, and optionally require a reviewer.
+4. Push to `dev`.
+
+### Operating the server
+
+```bash
+aws ssm start-session --target <instance_id>
+sudo journalctl -u buildengine-orchestrator -u buildengine-worker -f
+sudo systemctl restart buildengine-worker
+```
+
+## Project structure
+
+```
+buildEngine/
+├── packages/
+│   ├── orchestrator/   # Express API, routes, auth middleware, frontend (public/)
+│   ├── workers/        # build loop, Docker runner, S3 upload, process cleanup
+│   └── shared/         # config, SQLite db + schema, models
+├── tests/              # node:test suites + sandbox helper
+├── infra/              # Terraform (main stack + bootstrap), user_data, deploy script
+└── .github/workflows/  # ci.yml, infra-ci.yml, cd.yml
+```
+
+## Known limitations / roadmap
+
+- **SQLite:** one server and one worker. Moving to Postgres would allow more workers.
+- **One S3 bucket per deployment:** AWS limits buckets per account (100 by default). Planned: one bucket with a folder per deployment, behind CloudFront for HTTPS and custom domains.
+- **No HTTPS yet:** nginx serves plain HTTP on port 80.
+- **Not built yet:** custom domains, environment variables, analytics, rollback and editing project settings.
+- **`t3.micro` (1 GB RAM) is tight:** the orchestrator, the worker and a 1 GB build container share the instance, with 2 GB swap. Use `t3.small` or `t3.medium` for real builds.
