@@ -16,6 +16,7 @@ async function start() {
             console.log(`[worker] claimed deployment ${job.id}`);
             await runBuild(job)
             console.log(`[worker] finished deployment the id is given ${job.id}`);
+            console.log(`[worker] finished deployment the id is given ${job.id}`);
         }
 
 
