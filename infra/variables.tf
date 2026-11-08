@@ -25,7 +25,7 @@ variable "public_subnet_cidr" {
 variable "instance_type" {
   description = "EC2 instance type. Orchestrator + worker + a 1 GB Docker build container need ~4 GB, so t3.medium is the practical minimum."
   type        = string
-  default     = "t3.medium"
+  default     = "t3.micro"
 }
 
 variable "root_volume_size" {
