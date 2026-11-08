@@ -77,6 +77,8 @@ jobs:
           severity: CRITICAL
           trivyignores: infra/.trivyignore
           exit-code: "1"
+          # Pin explicitly: the action's default (v0.70.0) release was removed upstream
+          version: v0.72.0
 
       # Report-only: HIGH/MEDIUM findings show in the log for review
       - name: trivy config scan (report)
