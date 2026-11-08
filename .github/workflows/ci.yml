@@ -8,6 +8,8 @@ on:
     branches: [ "feature/addops" ]
   pull_request:
     branches: [ "dev" ]
+  # Lets cd.yml run the tests before deploying
+  workflow_call:
 
 jobs:
   tests:

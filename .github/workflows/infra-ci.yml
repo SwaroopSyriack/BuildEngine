@@ -128,7 +128,8 @@ jobs:
         # Read-only role and no lock: a PR plan must never block a deploy
         run: |
           set +e
-          terraform plan -input=false -no-color -lock=false -out=tfplan > plan.log 2>&1
+          terraform plan -input=false -no-color -lock=false -out=tfplan \
+            -var="aws_region=${{ vars.AWS_REGION }}" > plan.log 2>&1
           code=$?
           set -e
           if [ $code -eq 0 ]; then terraform show -no-color tfplan > plan.txt; else cp plan.log plan.txt; fi
