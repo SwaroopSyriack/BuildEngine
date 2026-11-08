@@ -5,40 +5,6 @@ Give it a Git repository and it clones the code, builds it in a Docker container
 publishes the output to S3 as a live website. Every build streams logs you can follow
 from the dashboard.
 
-## Features
-
-- **Accounts:** sign up and log in with a JWT session (httpOnly cookie or Bearer token)
-- **Projects:** connect a repo with optional build command, build image, output directory and SPA fallback
-- **One-click deploys:** each deploy is queued, built in an isolated Docker container and uploaded to S3
-- **Live build logs:** stdout, stderr and system lines, shown live in the UI while a build runs
-- **Deployment history:** status, duration, errors and a link to each live site
-- **Dashboard (NeonDeploy UI):** project grid, project workspace and activity feed, served by the API itself
-
-## Architecture
-
-```
-            ┌──────────────────────────── one server ────────────────────────────┐
- browser ──►│ nginx :80 ──► orchestrator :3000 (Express API + UI)                │
-            │                       │                                            │
-            │                       ▼                                            │
-            │              SQLite  data/buildengine.db  ◄── worker (polls queue)  │
-            │                                               │                    │
-            │                                               ├─ git clone         │
-            │                                               ├─ Docker build      │
-            │                                               └─ upload ───────────┼──► S3 bucket per
-            └────────────────────────────────────────────────────────────────────┘    deployment (website)
-```
-
-| Package | What it does |
-|---|---|
-| `packages/orchestrator` | Express API (auth, projects, deployments, logs) and the static frontend in `public/` |
-| `packages/workers` | Claims `pending` deployments, clones, builds in Docker, uploads to S3, records the result and logs |
-| `packages/shared` | SQLite connection, schema, models and config shared by both processes |
-
-**Deploy flow:** `POST /deploy/:id` → a `pending` row is added → the worker claims it (`building`) →
-clone → `docker run <image> sh -c "<build command>"` → find `dist/`, `build/` or `out/` →
-create the S3 bucket and upload → `ready` with the site URL, or `failed` with an error message.
-
 ## Tech stack
 
 Node.js 22 (ES modules, `node:sqlite`) · Express 5 · SQLite · Docker (dockerode) · AWS S3 ·
@@ -129,8 +95,7 @@ Port 3000 must be free while the tests run.
 | `infra-ci.yml` | PRs/pushes touching `infra/**`, called by CD | `terraform fmt`/`validate`, tflint, shellcheck, Trivy; on PRs a `terraform plan` posted as a comment |
 | `cd.yml` | Push to `dev`, manual | Tests + infra checks → `terraform apply` → package → upload to S3 → deploy through SSM → `/health` smoke test |
 
-Deploys use GitHub OIDC (no AWS keys stored in GitHub) and AWS SSM (no SSH). A release that
-fails its health check is rolled back automatically on the server.
+Deploys use GitHub OIDC (no AWS keys stored in GitHub) and AWS SSM
 
 ## Infrastructure (`infra/`)
 
@@ -157,13 +122,6 @@ systemd services behind nginx:
 3. In GitHub → Settings → Environments, create `production`. Allow deployments from `dev` only, and optionally require a reviewer.
 4. Push to `dev`.
 
-### Operating the server
-
-```bash
-aws ssm start-session --target <instance_id>
-sudo journalctl -u buildengine-orchestrator -u buildengine-worker -f
-sudo systemctl restart buildengine-worker
-```
 
 ## Project structure
 
@@ -177,11 +135,3 @@ buildEngine/
 ├── infra/              # Terraform (main stack + bootstrap), user_data, deploy script
 └── .github/workflows/  # ci.yml, infra-ci.yml, cd.yml
 ```
-
-## Known limitations / roadmap
-
-- **SQLite:** one server and one worker. Moving to Postgres would allow more workers.
-- **One S3 bucket per deployment:** AWS limits buckets per account (100 by default). Planned: one bucket with a folder per deployment, behind CloudFront for HTTPS and custom domains.
-- **No HTTPS yet:** nginx serves plain HTTP on port 80.
-- **Not built yet:** custom domains, environment variables, analytics, rollback and editing project settings.
-- **`t3.micro` (1 GB RAM) is tight:** the orchestrator, the worker and a 1 GB build container share the instance, with 2 GB swap. Use `t3.small` or `t3.medium` for real builds.
