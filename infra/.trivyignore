@@ -1,0 +1,10 @@
+# Intentional exceptions for `trivy config` (used by infra-ci.yml). Keep each one justified.
+
+# Public web server: nginx on port 80 must be reachable from anywhere (main.tf: aws_vpc_security_group_ingress_rule.http)
+AVD-AWS-0107
+AWS-0107
+
+# All outbound is required: dnf/npm installs, git clones and Docker image pulls for user builds,
+# S3 uploads and the SSM agent (main.tf: aws_vpc_security_group_egress_rule.all)
+AVD-AWS-0104
+AWS-0104

@@ -28,10 +28,12 @@ variable "project_name" {
   default     = "buildengine"
 }
 
-variable "github_repo" {
-  description = "owner/repo allowed to assume the roles"
+# GitHub's immutable OIDC subject format: repo:<owner>@<owner_id>/<repo>@<repo_id>
+# Check with: gh api repos/<owner>/<repo>/actions/oidc/customization/sub  (sub_claim_prefix)
+variable "github_sub_prefix" {
+  description = "OIDC sub claim prefix GitHub sends for this repo"
   type        = string
-  default     = "SwaroopSyriack/BuildEngine"
+  default     = "repo:SwaroopSyriack@168578192/BuildEngine@1355112974"
 }
 
 variable "github_environment" {
@@ -119,8 +121,8 @@ data "aws_iam_policy_document" "plan_trust" {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:${var.github_repo}:pull_request",
-        "repo:${var.github_repo}:ref:refs/heads/*",
+        "${var.github_sub_prefix}:pull_request",
+        "${var.github_sub_prefix}:ref:refs/heads/*",
       ]
     }
   }
@@ -142,7 +144,7 @@ data "aws_iam_policy_document" "deploy_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:environment:${var.github_environment}"]
+      values   = ["${var.github_sub_prefix}:environment:${var.github_environment}"]
     }
   }
 }

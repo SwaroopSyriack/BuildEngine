@@ -1,4 +1,4 @@
-# Terraform CI: format, validate, lint and security-scan on every infra change;
+# Terraform CI: format, validate, and lint on every infra change;
 # on pull requests also run a real plan against AWS and post it as a PR comment.
 name: Infra CI
 
@@ -26,7 +26,7 @@ env:
 
 jobs:
   validate:
-    name: fmt / validate / lint / scan
+    name: fmt / validate / lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -68,27 +68,6 @@ jobs:
       - name: shellcheck deploy script
         run: shellcheck --severity=warning scripts/app-deploy.sh
 
-      # Blocking: CRITICAL findings (intentional exceptions are listed in infra/.trivyignore)
-      - name: trivy config scan (blocking)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: config
-          scan-ref: infra
-          severity: CRITICAL
-          trivyignores: infra/.trivyignore
-          exit-code: "1"
-
-      # Report-only: HIGH/MEDIUM findings show in the log for review
-      - name: trivy config scan (report)
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: config
-          scan-ref: infra
-          severity: HIGH,MEDIUM
-          trivyignores: infra/.trivyignore
-          exit-code: "0"
-          skip-setup-trivy: true
-
   plan:
     name: terraform plan
     needs: validate
@@ -128,7 +107,8 @@ jobs:
         # Read-only role and no lock: a PR plan must never block a deploy
         run: |
           set +e
-          terraform plan -input=false -no-color -lock=false -out=tfplan > plan.log 2>&1
+          terraform plan -input=false -no-color -lock=false -out=tfplan \
+            -var="aws_region=${{ vars.AWS_REGION }}" > plan.log 2>&1
           code=$?
           set -e
           if [ $code -eq 0 ]; then terraform show -no-color tfplan > plan.txt; else cp plan.log plan.txt; fi

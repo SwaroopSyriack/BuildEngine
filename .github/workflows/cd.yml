@@ -1,4 +1,4 @@
-# CD: on every push to main
+# CD: on every push to dev (or run manually)
 #   1. app tests (ci.yml) + terraform static checks (infra-ci.yml)
 #   2. terraform apply
 #   3. package the app, upload to S3, deploy to the VM through SSM, smoke test
